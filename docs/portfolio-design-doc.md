@@ -1,7 +1,7 @@
 # Portfolio Website — Design Doc
 
 **Owner:** Nishtha Gupta
-**Status:** Draft, awaiting approval
+**Status:** Draft
 **Date:** 2026-08-02
 
 ---
@@ -54,7 +54,7 @@ Dark portfolios fail by being flat grey. Fix: three distinct surface levels plus
 
 --text-hi      #ECECF1   headings
 --text-body    #A8A8B8   paragraphs
---text-mute    #6B6B7B   captions, metadata
+--text-mute    #7E7E92   captions, metadata (raised from #6B6B7B — see note)
 
 --accent       #7C5CFF   primary — links, CTAs, focus rings (violet)
 --accent-2     #35E0A1   terminal green — code, prompts, success
@@ -63,7 +63,20 @@ Dark portfolios fail by being flat grey. Fix: three distinct surface levels plus
 
 Rule: `--accent-3` never appears as text. It is motion-only, which is what keeps the palette from turning into a rainbow.
 
-Contrast: `--text-body` on `--bg-void` = 8.1:1. `--accent` on `--bg-void` = 5.4:1. Both clear AA.
+Measured contrast against `--bg-void`:
+
+| Token | Ratio | Grade |
+|---|---|---|
+| `--text-hi` | 16.99 | AAA |
+| `--text-body` | 8.53 | AAA |
+| `--text-mute` | 5.04 | AA |
+| `--accent-soft` (links) | 7.35 | AAA |
+| `--accent` | 4.60 | AA |
+| `--accent-2` | 11.74 | AAA |
+
+`--text-mute` started at `#6B6B7B` and measured 3.82 — a fail for the 11px mono labels it's used on. Raised to `#7E7E92`. Worth noting because it's the exact trap dark themes set: the muted grey that looks right in Figma is usually illegal at small sizes.
+
+Links use `--accent-soft` `#A78BFA` rather than `--accent` itself, since `--accent` only clears AA by a hair and link text is small.
 
 ### 3.2 Typography
 
@@ -231,9 +244,29 @@ I can scaffold with placeholders, but these are the blockers for a real site:
 
 ---
 
-## 9. Open questions
+## 9. Decisions
 
-1. **Accent color** — violet `#7C5CFF` is the proposal. Cyan and amber are the obvious alternatives.
-2. **Contact form or just an email link?** A form is more work and more spam; a `mailto:` converts about as well.
-3. **Custom domain**, or is `nishtha.vercel.app` fine for now?
-4. **Do you want an easter egg?** e.g. typing `help` anywhere opens a real command palette. Fun, and a good interview story, but it's a phase-5 item.
+| Question | Decision |
+|---|---|
+| Accent color | Violet `#7C5CFF`. Nishtha may tweak later. |
+| Contact | Form **and** a visible email link, side by side. |
+| Hosting | **Vercel now**, custom domain attached. AWS migration deferred to phase 6. |
+| Easter egg | Deferred to phase 5, not a blocker. |
+
+### Hosting rationale
+
+Vercel wins on time-to-live: zero config for Next.js, API routes work out of the box, free tier, and a custom domain is a DNS record plus an automatic cert. Recruiters judge the content, not the CDN.
+
+The AWS work is still worth doing — just after the site is live, as a deliberate infrastructure project rather than a prerequisite.
+
+### Phase 6 — AWS migration (later)
+
+Target: OpenNext build → S3 + CloudFront, Lambda for SSR and the contact route, Route 53 for DNS, ACM for TLS, GitHub Actions for CI/CD, all defined in IaC (CDK or Terraform).
+
+Why this and not Amplify: Amplify is a deploy button. Hand-wiring CloudFront behaviors, cache policies, and a Lambda origin is the version that gives you something to talk about in a systems interview. Keep the Vercel deploy alive during the migration and cut DNS over only once the AWS stack is verified.
+
+---
+
+## 10. Still blocked on
+
+The hero headline and every content section need real facts about Nishtha's background — none exist in writing yet. See section 8 for the checklist. Scaffolding (phase 1) can proceed in parallel with placeholders.
