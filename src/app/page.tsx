@@ -12,6 +12,8 @@ export default function Home() {
     <Container>
       <main id="main">
         <Hero />
+        {/* Sticky nav watches this rather than listening to scroll events. */}
+        <div id="hero-sentinel" aria-hidden="true" className="h-px w-full" />
         <About />
         <Projects />
         <Skills />

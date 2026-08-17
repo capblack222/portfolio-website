@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { canRunTrail, useTrailEnabled } from "@/lib/trail-preference";
 
 const GRID = 8;
 const POOL_SIZE = 180;
@@ -35,16 +36,13 @@ type Particle = {
  */
 export function PixelCursorTrail() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const enabled = useTrailEnabled();
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
-    const lowPower = (navigator.hardwareConcurrency ?? 8) <= 4;
-
-    if (reducedMotion || coarsePointer || lowPower) return;
+    if (!enabled || !canRunTrail()) return;
 
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
@@ -172,8 +170,11 @@ export function PixelCursorTrail() {
       window.removeEventListener("pointermove", onPointerMove);
       document.removeEventListener("visibilitychange", onVisibility);
       if (frame) cancelAnimationFrame(frame);
+      // Wipe on teardown, otherwise switching the trail off leaves the last
+      // frame of particles frozen on screen.
+      ctx.clearRect(0, 0, width, height);
     };
-  }, []);
+  }, [enabled]);
 
   return (
     <canvas

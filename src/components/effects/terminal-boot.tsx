@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * time a visitor spends not reading the site. 2000–3000 is the range worth
  * trying if 5000 starts to feel long.
  */
-const BOOT_MS = 3000;
+const BOOT_MS = 2500;
 
 const FADE_MS = 450;
 const HINT_AFTER_MS = 600;
@@ -81,13 +81,23 @@ export function TerminalBoot() {
       if (line >= LINES.length) return;
 
       char++;
-      const current = LINES[line]!.slice(0, char);
 
-      setTyped((prev) => {
-        const next = prev.slice(0, line);
-        next[line] = current;
-        return next;
-      });
+      // Snapshot the indices before calling setState.
+      //
+      // `line` and `char` are mutable loop variables. React runs state
+      // updaters asynchronously, so an updater that reads `line` directly
+      // sees whatever value it holds *when React gets around to it* — which,
+      // for the last character of a line, is after the increment below. That
+      // wrote each finished line into the next line's slot and rendered it
+      // twice. Deriving the whole array from a snapshot instead of from
+      // `prev` removes the ordering dependency entirely.
+      const lineIndex = line;
+      const snapshot = [
+        ...LINES.slice(0, lineIndex),
+        LINES[lineIndex]!.slice(0, char),
+      ];
+
+      setTyped(snapshot);
 
       if (char >= LINES[line]!.length) {
         line++;

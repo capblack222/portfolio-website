@@ -93,6 +93,10 @@ sessionStorage.removeItem("boot-played")
 
 **The cursor trail needs a mouse.** It won't appear on a trackpad-free touch device, and it's deliberately disabled on low-core machines.
 
+**Trail toggle.** A floating button in the bottom-right switches the trail off and on. The choice persists in `localStorage` under `trail-enabled`. The button hides itself entirely on devices where the trail can't run, rather than offering a control that does nothing.
+
+**Sticky nav.** Slides in once the hero scrolls past and highlights the section you're in. Both behaviours use `IntersectionObserver` rather than scroll listeners — two callbacks instead of one per frame.
+
 ## Status
 
 Phases 1–3 done: scaffold, tokens, all sections, and the full motion layer.

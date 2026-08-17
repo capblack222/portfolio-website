@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, JetBrains_Mono, Silkscreen } from "next/font/google";
 import { PixelCursorTrail } from "@/components/effects/pixel-cursor-trail";
 import { TerminalBoot } from "@/components/effects/terminal-boot";
+import { SiteNav } from "@/components/ui/site-nav";
+import { TrailToggle } from "@/components/ui/trail-toggle";
 import { profile } from "@/data/profile";
 import "./globals.css";
 
@@ -42,6 +44,14 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geist.variable} ${jetbrains.variable} ${silkscreen.variable}`}
+      // The pre-paint script below adds .boot-skip to <html> before React
+      // hydrates, so the server and client className necessarily differ. That
+      // is the entire point of running it early — waiting for React would mean
+      // a flash of page content before the overlay.
+      //
+      // This only suppresses the warning for this element's own attributes.
+      // Everything inside the tree is still checked normally.
+      suppressHydrationWarning
     >
       <head>
         {/*
@@ -65,7 +75,10 @@ export default function RootLayout({
           Skip to content
         </a>
 
+        {/* z-order: canvas 0, page content 10, nav and toggle 40, boot 50 */}
         <PixelCursorTrail />
+        <SiteNav />
+        <TrailToggle />
         <TerminalBoot />
 
         {children}
