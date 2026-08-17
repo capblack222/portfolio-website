@@ -43,6 +43,20 @@ export default function RootLayout({
       lang="en"
       className={`${geist.variable} ${jetbrains.variable} ${silkscreen.variable}`}
     >
+      <head>
+        {/*
+          Runs before first paint. Decides whether the boot overlay plays at
+          all, so the overlay is either covering the screen from frame one or
+          never rendered — never a flash of page followed by an overlay.
+          Wrapped in try/catch because sessionStorage throws in some privacy
+          modes, and a failed check should skip the sequence, not the page.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=sessionStorage.getItem("boot-played")==="1",r=matchMedia("(prefers-reduced-motion: reduce)").matches,n=matchMedia("(max-width: 639px)").matches;if(s||r||n){document.documentElement.classList.add("boot-skip")}else{sessionStorage.setItem("boot-played","1")}}catch(e){document.documentElement.classList.add("boot-skip")}})()`,
+          }}
+        />
+      </head>
       <body className="antialiased">
         <a
           href="#main"

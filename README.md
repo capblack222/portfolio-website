@@ -75,6 +75,14 @@ Three effects, all in `src/components/effects/`, all gated on `prefers-reduced-m
 |---|---|---|
 | Pixel cursor trail | `pixel-cursor-trail.tsx` | Touch device, reduced motion, or 4 or fewer CPU cores |
 | Terminal boot | `terminal-boot.tsx` | Reduced motion, viewport under 640px, or already played this session |
+
+The boot sequence runs as a **loading screen**: a pre-paint script in `<head>` covers the viewport before the first paint, so there is no flash of page content first. Change its duration with one constant:
+
+```ts
+// src/components/effects/terminal-boot.tsx
+const BOOT_MS = 5000;
+```
+
 | Scroll reveals | `reveal.tsx` | Reduced motion, or no `IntersectionObserver` |
 
 **The boot sequence plays once per browser session.** To see it again, hard-refresh in a new tab or clear `sessionStorage`:

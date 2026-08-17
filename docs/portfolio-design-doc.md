@@ -127,8 +127,16 @@ Three interactions, in priority order. All three obey `prefers-reduced-motion`.
 > render()
 ```
 
+**Revised after first review:** it now runs as a true loading screen rather than an overlay that appears post-hydration, and holds for 5 seconds.
+
+Making it cover the screen from the first paint required moving the decision out of React. A pre-paint inline script in `<head>` checks `sessionStorage`, reduced-motion, and viewport width, then adds a `.boot-skip` class to `<html>`. CSS covers the screen based on that class. React only drives the typing and the exit. This is the same technique dark themes use to avoid a white flash on load — React runs too late to prevent a flash of anything.
+
+The overlay markup still ships in the server HTML *after* the real page content, so crawlers and no-JS visitors get the full page. A CSS `animation` fades the overlay out at 6s independently of JavaScript, so a JS failure can't trap a visitor behind a black screen.
+
+**Open concern, recorded rather than resolved:** 5s is more than double the original cap. A visitor giving the site 20 seconds spends a quarter of it here, and bounce risk on a first paint that shows no content is real. `BOOT_MS` is a single constant in `terminal-boot.tsx` — worth testing 2000–3000 against it once the site is live.
+
 **Rules that keep it from being annoying** — this is the single riskiest element on the site:
-- **Max 2.2 seconds.** Hard cap.
+- **Hard cap at `BOOT_MS`**, enforced by a timer independent of the typing loop, plus the CSS failsafe above.
 - Skippable by any key, click, or scroll. A `[press any key to skip]` hint appears at 400ms.
 - Runs **once per session** (`sessionStorage`), not once per page load.
 - Skipped entirely on reduced-motion and on viewports under 640px.

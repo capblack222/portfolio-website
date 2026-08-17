@@ -61,7 +61,59 @@
   }
 }
 
+/**
+ * Boot overlay.
+ *
+ * Rendered in the server HTML and covered by CSS from the first paint, so
+ * there is no flash of page content before it. A pre-paint inline script in
+ * <head> adds .boot-skip when the sequence should not play at all.
+ *
+ * The CSS animation is a safety net: if JavaScript fails to load entirely,
+ * the overlay still fades out and hands over the page rather than trapping
+ * the visitor behind it.
+ */
+#boot-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background-color: var(--color-void);
+  animation: boot-failsafe 300ms linear 6000ms forwards;
+}
+
+.boot-skip #boot-overlay {
+  display: none;
+}
+
+html:not(.boot-skip) body {
+  overflow: hidden;
+}
+
+@keyframes boot-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+@keyframes boot-progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  #boot-overlay {
+    display: none;
+  }
+
+  html body {
+    overflow: auto;
+  }
+
   html {
     scroll-behavior: auto;
   }
