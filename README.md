@@ -49,7 +49,23 @@ All clear WCAG AA. Light themes fail on muted greys specifically — if you ligh
 
 **The architecture diagram** is inline SVG with three CSS-animated squares. The animation is disabled under `prefers-reduced-motion`, and the SVG carries a `<title>` so it isn't silent to screen readers.
 
-**Print:** Cmd+P produces a clean resume — nav, diagram, buttons, and form are hidden, layout collapses to one column, and link destinations are printed after the text since paper isn't clickable.
+**Print:** Cmd+P produces a resume of roughly one to one and a half pages.
+
+The screen version earns attention with depth; paper has a hard budget, so printing *selects* rather than just shrinking. Two mechanisms:
+
+- **`class="print-hide"`** on an element drops it and everything inside it. Currently applied to: the first about paragraph, planned certifications, the "also built" projects, the second-tier skills panel, the TIAA internship, publication and leadership, and the whole contact section.
+- **Bullet caps** in `styles.css` keep the first 2 bullets per project and the first 4 per role:
+
+  ```css
+  .project .bullets li:nth-child(n + 3),
+  .timeline .bullets li:nth-child(n + 5) { display: none; }
+  ```
+
+Add or remove `print-hide` in `index.html` to change what prints; change those two numbers to let more bullets through.
+
+Because the contact section is hidden, a `print-only` line under the header carries your email and links. If you change your email, **update it in both places**.
+
+Link destinations print after the text, since paper isn't clickable.
 
 ## Contact form
 

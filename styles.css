@@ -113,6 +113,11 @@ a:hover {
   left: -9999px;
 }
 
+/* Shown only when printing. See the print block at the end of this file. */
+.print-only {
+  display: none;
+}
+
 .skip:focus {
   left: 1rem;
   top: 1rem;
@@ -826,9 +831,10 @@ a:hover {
 
 @media print {
   @page {
-    margin: 14mm;
+    margin: 12mm;
   }
 
+  /* --- 1. hide the furniture --- */
   .nav,
   .hero__actions,
   .status,
@@ -836,19 +842,34 @@ a:hover {
   .form,
   .footer,
   .skip,
+  .eyebrow,
   .print-hide {
     display: none !important;
   }
 
+  .print-only {
+    display: block !important;
+  }
+
+  /* --- 2. cut the long tails ---
+     The screen version earns attention with depth. Paper has a hard budget,
+     so each list keeps only its strongest entries. Change the numbers below
+     to let more through.
+  */
+  .project .bullets li:nth-child(n + 3),
+  .timeline .bullets li:nth-child(n + 5) {
+    display: none;
+  }
+
   html {
-    font-size: 10.5pt;
+    font-size: 9.5pt;
   }
 
   body {
     background: #fff;
     color: #000;
-    font-size: 10.5pt;
-    line-height: 1.4;
+    font-size: 9.5pt;
+    line-height: 1.35;
   }
 
   .wrap {
@@ -857,30 +878,80 @@ a:hover {
   }
 
   .hero {
-    padding: 0 0 0.5rem;
+    padding: 0 0 0.35rem;
   }
 
   .hero h1 {
-    font-size: 22pt;
+    font-size: 19pt;
+  }
+
+  .hero__meta {
+    margin-top: 0.15rem;
+    font-size: 9pt;
   }
 
   .hero__headline {
-    margin-top: 0.5rem;
-    font-size: 12pt;
+    margin-top: 0.35rem;
+    max-width: none;
+    font-size: 11pt;
   }
 
   .hero__sub {
-    margin-top: 0.25rem;
+    margin-top: 0.1rem;
+  }
+
+  /* Contact details, since the contact section itself is hidden on paper. */
+  .print-contact {
+    margin-top: 0.3rem;
+    font-size: 9pt;
+    color: #333;
   }
 
   .section {
-    padding: 0.75rem 0;
+    padding: 0.55rem 0;
     border-top: 1px solid #ccc;
     break-inside: avoid;
   }
 
   .section__body {
-    margin-top: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .section__title,
+  h3,
+  h4 {
+    font-size: 11pt;
+  }
+
+  .project__head h3 {
+    font-size: 11pt;
+  }
+
+  .project__pitch,
+  .compact p,
+  .caveat {
+    margin-top: 0.15rem;
+  }
+
+  .bullets li {
+    margin-top: 0.15rem;
+  }
+
+  .bullets span {
+    max-width: none;
+  }
+
+  .skill-group + .skill-group {
+    margin-top: 0.4rem;
+  }
+
+  .role__company,
+  .award {
+    margin-top: 0.1rem;
+  }
+
+  .role__note {
+    display: none;
   }
 
   .grid-2,
