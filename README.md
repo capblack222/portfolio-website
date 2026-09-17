@@ -33,17 +33,24 @@ Edit `index.html` directly. Content lives in the markup, not in a data file — 
 
 ## Design notes
 
-**Colours** are CSS custom properties at the top of `styles.css`. Measured contrast against the paper background:
+**Theme: terminal light**, monospace throughout with an amber accent, plus a dark mode.
 
-| Token | Ratio |
-|---|---|
-| `--ink` | 17.42 |
-| `--body` | 9.58 |
-| `--muted` | 5.08 |
-| `--accent` | 6.70 |
-| `--green` | 5.14 |
+**Colours** are CSS custom properties in one block at the top of `styles.css`. Nothing else in the file references a literal colour, so retheming means editing that block. Measured contrast:
 
-All clear WCAG AA. Light themes fail on muted greys specifically — if you lighten `--muted`, re-measure before shipping.
+| Token | Light | Dark |
+|---|---|---|
+| `--ink` | 16.26 | 16.02 |
+| `--body` | 9.35 | 9.91 |
+| `--muted` | 5.16 | 6.07 |
+| `--accent` | 5.62 | 10.60 |
+
+All clear WCAG AA in both modes. `--muted` is the one to re-check if you touch it — at 11px it's the first thing to fail, in either direction.
+
+**Dark mode** works three ways: an inline script in `<head>` applies a saved choice before first paint (no flash), `prefers-color-scheme` picks the starting mode for anyone who hasn't chosen, and the nav button overrides and saves to `localStorage`. The button label names the mode you'd switch *to*.
+
+**Terminal touches** are all CSS, no markup noise: the `$` before section labels and `~/` before the nav name are `::before` content, so screen readers get the label without the punctuation. The blinking block cursor after the name stops under `prefers-reduced-motion`.
+
+**Print switches to serif and forces light**, whatever the screen theme. Monospace is the site's identity but it's wasteful on a page with a fixed budget.
 
 **Width** is one variable, `--wrap`, currently 1180px.
 

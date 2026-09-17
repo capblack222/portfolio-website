@@ -13,6 +13,57 @@
 (function () {
   "use strict";
 
+  /* --- 0. theme toggle ---------------------------------------------------
+     The saved theme is applied by an inline script in <head>, before first
+     paint — that is what stops a dark-mode visitor seeing a white flash.
+     This only handles the button.
+
+     With no saved choice the site follows the OS setting, so the button
+     reports what the page currently looks like rather than what is stored.
+  */
+
+  var toggle = document.getElementById("theme-toggle");
+  var themeLabel = document.getElementById("theme-label");
+
+  function currentTheme() {
+    var explicit = document.documentElement.getAttribute("data-theme");
+    if (explicit) return explicit;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  }
+
+  function paintToggle() {
+    if (!toggle || !themeLabel) return;
+    var isDark = currentTheme() === "dark";
+    // The label names the mode you would switch *to*.
+    themeLabel.textContent = isDark ? "light" : "dark";
+    toggle.setAttribute("aria-pressed", isDark ? "true" : "false");
+    toggle.setAttribute("aria-label", isDark ? "Light mode" : "Dark mode");
+  }
+
+  if (toggle) {
+    paintToggle();
+
+    toggle.addEventListener("click", function () {
+      var next = currentTheme() === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      try {
+        localStorage.setItem("theme", next);
+      } catch (e) {
+        // Preference just won't persist. Not worth surfacing.
+      }
+      paintToggle();
+    });
+
+    // Follow the OS if the visitor has never chosen explicitly.
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", function () {
+        if (!document.documentElement.getAttribute("data-theme")) paintToggle();
+      });
+  }
+
   /* --- 1. active nav link ------------------------------------------------
      IntersectionObserver rather than a scroll listener: the browser tells us
      when a section crosses the threshold instead of us asking on every frame.
