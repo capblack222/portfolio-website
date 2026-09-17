@@ -1,104 +1,80 @@
 # Portfolio — Nishtha Gupta
 
-Dark, interactive developer portfolio. Next.js 16, TypeScript, Tailwind v4.
-
-Design and animation spec: [`docs/portfolio-design-doc.md`](docs/portfolio-design-doc.md)
+Static site. Plain HTML, CSS, and JavaScript. No framework, no build step, no dependencies.
 
 ## Running it
 
+Double-click `index.html`. That's it — there's nothing to install and no server to start.
+
+If you want a local server anyway (useful for testing the contact form's CORS):
+
 ```bash
-npm install
-npm run dev
+python3 -m http.server 8000
 ```
 
-Open http://localhost:3000
-
-> **First run:** if `npm install` errors, delete `node_modules` first — a partial install was left behind during scaffolding.
-
-## Contact form
-
-The form posts to `/api/contact`. Without env vars it returns 503 and the UI tells visitors to use the mailto link instead, so no message is ever silently dropped.
-
-To enable delivery, create `.env.local`:
+## Files
 
 ```
-RESEND_API_KEY=re_xxxxxxxx
-CONTACT_TO_EMAIL=nish.gup.446@gmail.com
+index.html       all content and markup
+styles.css       light theme + print stylesheet
+main.js          ~80 lines: active nav link, contact form submit
+infra/
+  lambda/contact.mjs   SES handler for the contact form
+  README.md            full AWS deployment runbook
+docs/                  design doc from the earlier build
+legacy-nextjs/         the previous Next.js version, kept for reference
 ```
-
-Sign up at [resend.com](https://resend.com) for the key. On Vercel, add both under Project Settings → Environment Variables.
 
 ## Editing content
 
-All copy lives in typed files under `src/data/` — no CMS, no component edits needed.
+Edit `index.html` directly. Content lives in the markup, not in a data file — for a site this size that's fewer moving parts, and it means search engines and no-JS visitors see everything.
 
-| File | Holds |
+**One `TODO` is outstanding:** the Graduate Assistant entry under experience has no bullet, because that role isn't on the master CV and nothing was inferred. Search `TODO` in `index.html`.
+
+## Design notes
+
+**Colours** are CSS custom properties at the top of `styles.css`. Measured contrast against the paper background:
+
+| Token | Ratio |
 |---|---|
-| `profile.ts` | Name, headline, about, links, status badge |
-| `projects.ts` | Projects, each led by engineering decisions rather than a feature list |
-| `experience.ts` | Roles, bullets, education |
-| `skills.ts` | Two tiers — `core` vs `building` |
+| `--ink` | 17.42 |
+| `--body` | 9.58 |
+| `--muted` | 5.08 |
+| `--accent` | 6.70 |
+| `--green` | 5.14 |
 
-TypeScript will flag a missing field at build time rather than rendering a blank section.
+All clear WCAG AA. Light themes fail on muted greys specifically — if you lighten `--muted`, re-measure before shipping.
+
+**Width** is one variable, `--wrap`, currently 1180px.
+
+**The architecture diagram** is inline SVG with three CSS-animated squares. The animation is disabled under `prefers-reduced-motion`, and the SVG carries a `<title>` so it isn't silent to screen readers.
+
+**Print:** Cmd+P produces a clean resume — nav, diagram, buttons, and form are hidden, layout collapses to one column, and link destinations are printed after the text since paper isn't clickable.
+
+## Contact form
+
+`main.js` posts to an API Gateway endpoint in front of a Lambda that calls SES.
+
+Until you paste the endpoint into `ENDPOINT` in `main.js`, the form tells visitors to use the email link instead. Deliberate — a form that looks like it sent but didn't is worse than no form.
+
+Setup is in [`infra/README.md`](infra/README.md).
 
 ## Deploying
 
+Full runbook in [`infra/README.md`](infra/README.md). Short version:
+
 ```bash
-npm i -g vercel
-vercel
+aws s3 sync . s3://YOUR-BUCKET \
+  --exclude ".*" --exclude "docs/*" --exclude "infra/*" \
+  --exclude "legacy-nextjs/*" --exclude "README.md" --delete
+
+aws cloudfront create-invalidation --distribution-id EXXXXXXXXXXXXX --paths "/*"
 ```
 
-Then attach the custom domain in the Vercel dashboard under Settings → Domains. Cert is automatic.
+Don't skip the invalidation — CloudFront caches for 24 hours and you'll think the deploy failed.
 
-AWS migration is scoped as phase 6 in the design doc.
+**Use CloudFront, not S3 static website hosting.** S3's website endpoints can't serve HTTPS on a custom domain.
 
-## Structure
+## The old version
 
-```
-src/
-  app/
-    layout.tsx           fonts, metadata, skip link
-    page.tsx             composes sections
-    globals.css          design tokens
-    api/contact/route.ts validation, honeypot, Resend
-  components/
-    sections/            hero, about, projects, skills, experience, contact
-    ui/section.tsx       Section, Container, Tag
-  data/                  all content
-```
-
-## Motion
-
-Three effects, all in `src/components/effects/`, all gated on `prefers-reduced-motion`.
-
-| Effect | File | Turns itself off when |
-|---|---|---|
-| Pixel cursor trail | `pixel-cursor-trail.tsx` | Touch device, reduced motion, or 4 or fewer CPU cores |
-| Terminal boot | `terminal-boot.tsx` | Reduced motion, viewport under 640px, or already played this session |
-
-The boot sequence runs as a **loading screen**: a pre-paint script in `<head>` covers the viewport before the first paint, so there is no flash of page content first. Change its duration with one constant:
-
-```ts
-// src/components/effects/terminal-boot.tsx
-const BOOT_MS = 5000;
-```
-
-| Scroll reveals | `reveal.tsx` | Reduced motion, or no `IntersectionObserver` |
-
-**The boot sequence plays once per browser session.** To see it again, hard-refresh in a new tab or clear `sessionStorage`:
-
-```js
-sessionStorage.removeItem("boot-played")
-```
-
-**The cursor trail needs a mouse.** It won't appear on a trackpad-free touch device, and it's deliberately disabled on low-core machines.
-
-**Trail toggle.** A floating button in the bottom-right switches the trail off and on. The choice persists in `localStorage` under `trail-enabled`. The button hides itself entirely on devices where the trail can't run, rather than offering a control that does nothing.
-
-**Sticky nav.** Slides in once the hero scrolls past and highlights the section you're in. Both behaviours use `IntersectionObserver` rather than scroll listeners — two callbacks instead of one per frame.
-
-## Status
-
-Phases 1–3 done: scaffold, tokens, all sections, and the full motion layer.
-
-Phase 4 next: project detail pages at `/projects/[slug]`, OG images, 404 page.
+`legacy-nextjs/` holds the previous Next.js app — dark theme, pixel cursor trail, terminal boot sequence. Nothing was deleted; it also lives in git history. Delete the folder when you're sure you don't want it.

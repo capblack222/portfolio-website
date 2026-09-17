@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Nishtha Gupta — Software Engineer</title>
+    <meta
+      name="description"
+      content="Software engineer and M.Eng. Cloud Engineering student at the University of Maryland. I design event-driven systems on AWS."
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Nishtha Gupta — Software Engineer" />
+    <meta
+      property="og:description"
+      content="I design event-driven systems on AWS. Every service choice answers a specific access pattern."
+    />
+
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="data:," />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Nishtha Gupta",
+        "jobTitle": "Software Engineer",
+        "url": "https://example.com",
+        "email": "nishtha.gupta.446@gmail.com",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "College Park",
+          "addressRegion": "MD"
+        },
+        "alumniOf": [
+          { "@type": "CollegeOrUniversity", "name": "University of Maryland, College Park" },
+          { "@type": "CollegeOrUniversity", "name": "University of Mumbai" }
+        ],
+        "sameAs": [
+          "https://github.com/capblack222",
+          "https://linkedin.com/in/gupnish"
+        ]
+      }
+    </script>
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="nav">
+      <div class="wrap">
+        <a class="nav__name" href="#main">Nishtha Gupta</a>
+        <nav class="nav__links" aria-label="Sections">
+          <a href="#about">about</a>
+          <a href="#projects">projects</a>
+          <a href="#skills">skills</a>
+          <a href="#experience">experience</a>
+          <a href="#contact">contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="wrap">
+        <!-- ===== hero ===== -->
+        <section class="hero">
+          <h1>Nishtha Gupta</h1>
+          <p class="hero__meta">software engineer · college park, maryland</p>
+
+          <p class="hero__headline">I design event-driven systems on AWS</p>
+          <p class="hero__sub">
+            Every service choice answers a specific access pattern.
+          </p>
+
+          <p class="status">Seeking Summer 2027 software internships</p>
+
+          <div class="hero__actions">
+            <a class="btn btn--primary" href="#projects">View projects</a>
+            <a class="btn" href="#contact">Get in touch</a>
+            <a class="btn" href="https://github.com/capblack222" target="_blank" rel="noreferrer">GitHub</a>
+            <a class="btn" href="https://linkedin.com/in/gupnish" target="_blank" rel="noreferrer">LinkedIn</a>
+          </div>
+
+          <!-- ===== metrics ===== -->
+          <ul class="metrics">
+            <li class="metric">
+              <p class="metric__value">87%</p>
+              <p class="metric__label">
+                fewer post-release defects across 12+ deployments at TIAA
+              </p>
+            </li>
+            <li class="metric">
+              <p class="metric__value">250ms &rarr; 20ms</p>
+              <p class="metric__label">
+                API response time, by indexing a lookup and collapsing per-row queries
+              </p>
+            </li>
+            <li class="metric">
+              <p class="metric__value">55%</p>
+              <p class="metric__label">
+                lower p99 latency after adding a Redis cache layer, measured in CloudWatch
+              </p>
+            </li>
+          </ul>
+
+          <!-- ===== architecture diagram ===== -->
+          <figure class="diagram">
+            <p class="eyebrow">climatewatch — ingest to query</p>
+
+            <svg viewBox="0 0 760 150" role="img" aria-labelledby="diagram-title">
+              <title id="diagram-title">
+                Data flows from Kinesis into DynamoDB for key-value lookups and
+                into S3 for columnar scans via Athena, with EventBridge
+                orchestrating.
+              </title>
+
+              <!-- connectors -->
+              <path class="flow-line" d="M148 75 H266" />
+              <path class="flow-line" d="M374 75 H404 Q424 75 424 55 V45 H492" />
+              <path class="flow-line" d="M374 75 H404 Q424 75 424 95 V105 H492" />
+              <path class="flow-line" d="M600 105 H628 Q648 105 648 85 V75" stroke-dasharray="4 4" />
+
+              <!-- kinesis -->
+              <rect class="node-box" x="20" y="50" width="128" height="50" rx="6" />
+              <text class="node-label" x="84" y="72" text-anchor="middle">Kinesis</text>
+              <text class="node-sub" x="84" y="87" text-anchor="middle">stream buffering</text>
+
+              <!-- eventbridge -->
+              <rect class="node-box" x="266" y="50" width="108" height="50" rx="6" />
+              <text class="node-label" x="320" y="72" text-anchor="middle">EventBridge</text>
+              <text class="node-sub" x="320" y="87" text-anchor="middle">orchestration</text>
+
+              <!-- dynamodb -->
+              <rect class="node-box" x="492" y="20" width="108" height="50" rx="6" />
+              <text class="node-label" x="546" y="42" text-anchor="middle">DynamoDB</text>
+              <text class="node-sub" x="546" y="57" text-anchor="middle">key-value lookup</text>
+
+              <!-- s3 -->
+              <rect class="node-box" x="492" y="80" width="108" height="50" rx="6" />
+              <text class="node-label" x="546" y="102" text-anchor="middle">S3</text>
+              <text class="node-sub" x="546" y="117" text-anchor="middle">columnar store</text>
+
+              <!-- athena -->
+              <rect class="node-box" x="648" y="50" width="92" height="50" rx="6" />
+              <text class="node-label" x="694" y="72" text-anchor="middle">Athena</text>
+              <text class="node-sub" x="694" y="87" text-anchor="middle">scan on read</text>
+
+              <!-- packets -->
+              <rect class="packet packet--a" x="148" y="71" width="8" height="8" />
+              <rect class="packet packet--b" x="374" y="71" width="8" height="8" />
+              <rect class="packet packet--c" x="374" y="71" width="8" height="8" />
+            </svg>
+
+            <figcaption class="diagram__caption">
+              Each managed service answers one access pattern — stream buffering,
+              key-value lookup, columnar scan — so cost stays proportional to
+              usage rather than to provisioned capacity sitting idle. Records are
+              queryable within 50ms of arrival.
+            </figcaption>
+          </figure>
+        </section>
+
+        <!-- ===== about ===== -->
+        <section class="section" id="about">
+          <p class="eyebrow">// 02 — about</p>
+          <div class="section__body grid-2">
+            <div class="prose">
+              <p>
+                Software engineer with 2+ years building backend systems, cloud
+                infrastructure, and data pipelines, now doing an M.Eng. in Cloud
+                Engineering at the University of Maryland.
+              </p>
+              <p>
+                Most of my production experience is the unglamorous half of
+                distributed systems: tracing where records diverge between an API
+                layer, an MDM store, a warehouse, and a CRM, and finding the
+                failures nobody logged. At TIAA that meant cutting post-release
+                defects by 87% across 12+ deployments in a regulated environment.
+                It is also why I instrument observability while building rather
+                than after something breaks.
+              </p>
+
+              <div style="margin-top: 2rem">
+                <p class="eyebrow">education</p>
+                <ul style="margin-top: 0.75rem">
+                  <li style="margin-top: 0.5rem">
+                    <strong style="color: var(--ink); font-weight: 500"
+                      >M.Eng. Cloud Engineering</strong
+                    >
+                    <span style="color: var(--muted)"
+                      >— University of Maryland, College Park</span
+                    >
+                    <span class="role__dates"> Jan 2026 – Dec 2027</span>
+                  </li>
+                  <li style="margin-top: 0.5rem">
+                    <strong style="color: var(--ink); font-weight: 500"
+                      >B.E. Computer Science and Engineering</strong
+                    >
+                    <span style="color: var(--muted)">— University of Mumbai</span>
+                    <span class="role__dates"> Aug 2019 – May 2023</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <aside class="card">
+              <p class="eyebrow">certifications</p>
+              <ul class="certs">
+                <li>
+                  <div>
+                    <strong>AWS Certified Solutions Architect – Associate</strong>
+                    <em>SAA-C03</em>
+                  </div>
+                </li>
+                <li>
+                  <div>
+                    <strong>HashiCorp Terraform Associate</strong>
+                    <em>004</em>
+                  </div>
+                </li>
+                <li>
+                  <div>
+                    <strong>AWS Certified AI Practitioner</strong>
+                    <em>AIF-C01</em>
+                  </div>
+                </li>
+                <li class="is-planned">
+                  <div>
+                    <strong>Microsoft Azure Fundamentals</strong>
+                    <em>AZ-900 — planned Oct 2026</em>
+                  </div>
+                </li>
+                <li class="is-planned">
+                  <div>
+                    <strong>AWS Certified Developer – Associate</strong>
+                    <em>DVA-C02 — planned Dec 2026</em>
+                  </div>
+                </li>
+              </ul>
+            </aside>
+          </div>
+        </section>
+
+        <!-- ===== projects ===== -->
+        <section class="section" id="projects">
+          <p class="eyebrow">// 03 — projects</p>
+          <h2 class="section__title">Systems, and the decisions behind them</h2>
+
+          <div class="section__body">
+            <article class="project card card--lg">
+              <div class="project__head">
+                <h3>Lottery Verification Platform</h3>
+                <p class="project__role">Infrastructure and Networking Lead · 2026</p>
+              </div>
+              <p class="project__pitch">
+                A verification service where I owned the network and
+                infrastructure layer, then kept extending it after the team build
+                ended.
+              </p>
+              <ul class="bullets">
+                <li><span>Owned VPC design, load balancing, ECS, and security group configuration for the team deployment.</span></li>
+                <li><span>Added an SQS dead-letter queue after finding verification requests dropping silently under burst load — the failure mode was invisible until the queue made it explicit.</span></li>
+                <li><span>Introduced ElastiCache Redis for repeat lookups, cutting p99 latency by 55% and database load by 60%, benchmarked through CloudWatch rather than assumed.</span></li>
+              </ul>
+              <div class="tags">
+                <span class="tag">AWS</span><span class="tag">VPC</span><span class="tag">ECS</span><span class="tag">SQS</span><span class="tag">ElastiCache</span>
+              </div>
+            </article>
+
+            <article class="project card card--lg">
+              <div class="project__head">
+                <h3>ClimateWatch</h3>
+                <p class="project__role">2026</p>
+              </div>
+              <p class="project__pitch">
+                An event-driven pipeline that makes climate records queryable
+                within 50ms of arrival, without standing up infrastructure per
+                query.
+              </p>
+              <ul class="bullets">
+                <li><span>Streaming ingestion across Kinesis, DynamoDB, S3, Athena, and EventBridge.</span></li>
+                <li><span>Matched each managed service to a specific access pattern — stream buffering, key-value lookup, columnar scan — so cost stays proportional to actual usage rather than provisioned capacity sitting idle.</span></li>
+              </ul>
+              <div class="tags">
+                <span class="tag">Python</span><span class="tag">Kinesis</span><span class="tag">DynamoDB</span><span class="tag">Athena</span><span class="tag">EventBridge</span><span class="tag">S3</span>
+              </div>
+            </article>
+
+            <article class="project card card--lg">
+              <div class="project__head">
+                <h3>AgriSense Agent</h3>
+                <p class="project__role">2026</p>
+              </div>
+              <p class="project__pitch">
+                A retrieval-augmented agent returning region-specific crop
+                guidance with source attribution, so farmers get verifiable
+                answers rather than unattributed generated text.
+              </p>
+              <ul class="bullets">
+                <li><span>Measured answer quality against a fixed evaluation set, making retrieval changes comparable across iterations instead of judged by inspection.</span></li>
+                <li><span>Instrumented observability during build rather than after, surfacing latency and retrieval-quality regressions before they reached users.</span></li>
+                <li><span>Deployed on AWS once retrieval behaviour was stable, keeping the iteration loop fast while the hard part was still moving.</span></li>
+              </ul>
+              <div class="tags">
+                <span class="tag">Python</span><span class="tag">RAG</span><span class="tag">AWS</span><span class="tag">Evaluation</span>
+              </div>
+            </article>
+
+            <p class="eyebrow" style="margin-top: 3rem">// also built</p>
+            <div class="compact-grid">
+              <article class="compact card">
+                <div class="project__head">
+                  <h4>Bedrock</h4>
+                  <p class="project__role">academic · 2026</p>
+                </div>
+                <p>A modular Terraform project deploying a 3-tier AWS architecture entirely as infrastructure as code.</p>
+                <ul class="bullets bullets--quiet">
+                  <li><span>Five modules — networking, security, compute, storage, monitoring — deploying ALB → ASG web tier → RDS, with databases isolated in private subnets behind a NAT Gateway.</span></li>
+                  <li><span>A conditional count pattern toggles provisioning by environment, so one codebase supports dev, staging, and prod without duplication.</span></li>
+                </ul>
+                <div class="tags">
+                  <span class="tag">Terraform</span><span class="tag">AWS</span><span class="tag">RDS</span><span class="tag">VPC</span>
+                </div>
+              </article>
+
+              <article class="compact card">
+                <div class="project__head">
+                  <h4>Surge</h4>
+                  <p class="project__role">academic · 2026</p>
+                </div>
+                <p>A message-driven pipeline that autoscales EKS worker pods against queue depth.</p>
+                <ul class="bullets bullets--quiet">
+                  <li><span>SNS → SQS → EKS workers, with a KEDA ScaledObject scaling pods from 1 to 10 on queue depth, polling every 15 seconds.</span></li>
+                  <li><span>IAM inline policies scoped to least privilege; scale-out and scale-in validated under a 100-message load test.</span></li>
+                </ul>
+                <div class="tags">
+                  <span class="tag">AWS EKS</span><span class="tag">KEDA</span><span class="tag">SQS</span><span class="tag">Helm</span>
+                </div>
+              </article>
+
+              <article class="compact card">
+                <div class="project__head">
+                  <h4>Polyglot Healthcare System</h4>
+                  <p class="project__role">2026</p>
+                </div>
+                <p>A healthcare records system using three databases, each chosen for the queries it is actually good at.</p>
+                <ul class="bullets bullets--quiet">
+                  <li><span>Python model and repository layer over PostgreSQL, isolating SQL from business logic.</span></li>
+                  <li><span>Neo4j catalog spanning diseases, medications, symptoms, and lab tests, enabling traversal-based drug-interaction checks that gate prescriptions.</span></li>
+                </ul>
+                <div class="tags">
+                  <span class="tag">PostgreSQL</span><span class="tag">MongoDB</span><span class="tag">Neo4j</span><span class="tag">Docker</span>
+                </div>
+              </article>
+
+              <article class="compact card">
+                <div class="project__head">
+                  <h4>Driver Drowsiness Detection</h4>
+                  <p class="project__role">published · 2023</p>
+                </div>
+                <p>A real-time fatigue detection system on commodity hardware, targeting driver safety without specialised in-vehicle equipment.</p>
+                <ul class="bullets bullets--quiet">
+                  <li><span>Published in Grenze International Journal of Engineering and Technology, Vol. 9 Issue 2 (SCOPUS-indexed).</span></li>
+                  <li><span>Presented at ASIT 2023, Hinweis Second International Conference.</span></li>
+                </ul>
+                <div class="tags">
+                  <span class="tag">OpenCV</span><span class="tag">Dlib</span><span class="tag">Raspberry Pi</span>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== skills ===== -->
+        <section class="section" id="skills">
+          <p class="eyebrow">// 04 — skills</p>
+          <div class="section__body grid-2">
+            <div>
+              <h3>Core</h3>
+              <p class="caveat">What I will defend in depth, unprompted.</p>
+
+              <div style="margin-top: 1.75rem">
+                <div class="skill-group">
+                  <p class="eyebrow">languages</p>
+                  <div class="tags">
+                    <span class="tag">Python</span><span class="tag">Java</span><span class="tag">JavaScript</span><span class="tag">SQL</span><span class="tag">Bash</span>
+                  </div>
+                </div>
+                <div class="skill-group">
+                  <p class="eyebrow">backend</p>
+                  <div class="tags">
+                    <span class="tag">REST API design</span><span class="tag">Node.js</span><span class="tag">Express</span><span class="tag">Spring Boot</span><span class="tag">Flask</span><span class="tag">Event-driven architecture</span>
+                  </div>
+                </div>
+                <div class="skill-group">
+                  <p class="eyebrow">cloud and infrastructure</p>
+                  <div class="tags">
+                    <span class="tag">AWS</span><span class="tag">Terraform</span><span class="tag">Docker</span><span class="tag">Lambda</span><span class="tag">ECS</span><span class="tag">VPC</span><span class="tag">SQS</span><span class="tag">CloudWatch</span>
+                  </div>
+                </div>
+                <div class="skill-group">
+                  <p class="eyebrow">data</p>
+                  <div class="tags">
+                    <span class="tag">MySQL</span><span class="tag">MariaDB</span><span class="tag">PostgreSQL</span><span class="tag">DynamoDB</span><span class="tag">Snowflake</span><span class="tag">Redis</span>
+                  </div>
+                </div>
+                <div class="skill-group">
+                  <p class="eyebrow">delivery and practice</p>
+                  <div class="tags">
+                    <span class="tag">CI/CD</span><span class="tag">Selenium WebDriver</span><span class="tag">TestNG</span><span class="tag">Agile</span><span class="tag">Observability</span><span class="tag">Debugging distributed data flows</span><span class="tag">Technical leadership</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <aside class="card">
+              <h3>Actively building with</h3>
+              <p class="caveat">
+                Recent enough that I would rather be asked about the specific
+                systems I built with them than claim general depth.
+              </p>
+              <div style="margin-top: 1.75rem">
+                <div class="skill-group">
+                  <p class="eyebrow">orchestration</p>
+                  <div class="tags">
+                    <span class="tag">Kubernetes</span><span class="tag">EKS</span><span class="tag">KEDA</span><span class="tag">Helm</span>
+                  </div>
+                </div>
+                <div class="skill-group">
+                  <p class="eyebrow">other platforms and stores</p>
+                  <div class="tags">
+                    <span class="tag">Azure</span><span class="tag">MongoDB</span><span class="tag">Neo4j</span><span class="tag">Kinesis</span><span class="tag">Athena</span><span class="tag">EventBridge</span>
+                  </div>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <!-- ===== experience ===== -->
+        <section class="section" id="experience">
+          <p class="eyebrow">// 05 — experience</p>
+
+          <div class="section__body">
+            <ol class="timeline">
+              <li class="is-current">
+                <div class="role__head">
+                  <h3>Graduate Assistant</h3>
+                  <p class="role__dates">Jan 2026 — Present</p>
+                </div>
+                <p class="role__company">
+                  University of Maryland, College Park <span>· College Park, MD</span>
+                </p>
+                <!-- TODO: one line on what this role involves. Not on the master CV,
+                     so nothing here is inferred. -->
+              </li>
+
+              <li>
+                <div class="role__head">
+                  <h3>Software Analyst</h3>
+                  <p class="role__dates">Jul 2023 — Nov 2025</p>
+                </div>
+                <p class="role__company">TIAA <span>· Mumbai, India</span></p>
+                <p class="award">Best Fresher of the Year, 2024</p>
+                <ul class="bullets bullets--quiet">
+                  <li><span>Cut post-release defects by 87% across 12+ major deployments serving retirement plan participants, owning validation and defect triage across development, QA, and staging.</span></li>
+                  <li><span>Traced participant and institutional client records end to end across API integration, MDM, warehouse, and CRM layers, confirming one authoritative version surfaced consistently rather than diverging between systems.</span></li>
+                  <li><span>Expanded automated regression coverage by 60% by integrating Selenium WebDriver, TestNG, and Copado suites into the delivery pipeline, giving developers same-day feedback instead of release-gate discovery.</span></li>
+                  <li><span>Drove resolution of MDM defects producing duplicate and mismatched profiles, reducing record-related service escalations by 60%.</span></li>
+                  <li><span>Recovered 100+ hours per sprint through automation, redirecting the team toward feature delivery.</span></li>
+                  <li><span>Supported the enterprise migration from Siebel to Salesforce, mapping 75+ legacy entities and surfacing 150+ field-level discrepancies before cutover.</span></li>
+                </ul>
+              </li>
+
+              <li>
+                <div class="role__head">
+                  <h3>Backend Team Lead</h3>
+                  <p class="role__dates">Nov 2021 — Jan 2023</p>
+                </div>
+                <p class="role__company">SHRAM <span>· Mumbai, India</span></p>
+                <ul class="bullets bullets--quiet">
+                  <li><span>Led a 3-engineer backend team within a 9-person product organisation, setting technical direction and sprint priorities.</span></li>
+                  <li><span>Reduced API response times from 250ms to 20ms by indexing the task assignment lookup and collapsing per-row queries into a single join.</span></li>
+                  <li><span>Migrated the application from Spring Boot to Node.js module by module, preserving API compatibility so frontend clients kept operating unchanged throughout.</span></li>
+                  <li><span>Introduced code review practice and API design guidelines, cutting integration rework between frontend and backend teams.</span></li>
+                  <li><span>Mentored 3 junior developers through code review and knowledge-sharing sessions.</span></li>
+                </ul>
+                <p class="role__note">
+                  Part-time, promoted from Backend Developer, held alongside
+                  full-time undergraduate coursework. Gamified B2B productivity
+                  platform.
+                </p>
+              </li>
+
+              <li>
+                <div class="role__head">
+                  <h3>Student Intern</h3>
+                  <p class="role__dates">Jun 2022 — Jul 2022</p>
+                </div>
+                <p class="role__company">TIAA <span>· Pune, India</span></p>
+                <ul class="bullets bullets--quiet">
+                  <li><span>Built RESTful APIs with Django REST Framework for an AI/NLP-driven application, integrating backend services end to end.</span></li>
+                  <li><span>Validated mobile behaviour across 3 device emulators, surfacing functional and usability issues before release.</span></li>
+                </ul>
+              </li>
+            </ol>
+
+            <div class="grid-2 grid-2--even" style="margin-top: 4rem; border-top: 1px solid var(--line); padding-top: 2.5rem">
+              <div>
+                <p class="eyebrow">publication</p>
+                <p style="margin-top: 0.75rem; color: var(--ink)">
+                  Driver Drowsiness Detection and Alert System
+                </p>
+                <p style="margin-top: 0.25rem; font-size: 15px">
+                  Grenze International Journal of Engineering and Technology, Vol. 9,
+                  Issue 2 (SCOPUS-indexed)
+                </p>
+                <p class="role__dates" style="margin-top: 0.25rem">
+                  Presented at ASIT 2023, Hinweis Second International Conference
+                </p>
+              </div>
+
+              <div>
+                <p class="eyebrow">leadership</p>
+                <ul style="margin-top: 0.75rem">
+                  <li style="margin-top: 0.85rem">
+                    <p style="color: var(--ink)">
+                      NSS Lead <span style="color: var(--muted)">— National Service Scheme</span>
+                    </p>
+                    <p style="font-size: 15px">
+                      Led nonprofit education and outreach initiatives reaching 500+
+                      underprivileged children.
+                    </p>
+                  </li>
+                  <li style="margin-top: 0.85rem">
+                    <p style="color: var(--ink)">
+                      Women in Tech Lead
+                      <span style="color: var(--muted)">— Google Developer Student Clubs, RAIT</span>
+                    </p>
+                    <p style="font-size: 15px">
+                      Organised technical events and mentored students.
+                    </p>
+                  </li>
+                  <li style="margin-top: 0.85rem">
+                    <p style="color: var(--ink)">
+                      Intern Lead <span style="color: var(--muted)">— SDG Cell, RAIT</span>
+                    </p>
+                    <p style="font-size: 15px">
+                      Mentored 27 interns and coordinated stakeholders across project
+                      delivery.
+                    </p>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== contact ===== -->
+        <section class="section" id="contact">
+          <p class="eyebrow">// 06 — contact</p>
+          <h2 class="section__title">Get in touch</h2>
+
+          <div class="section__body grid-2">
+            <form class="form" id="contact-form" novalidate>
+              <div class="honeypot" aria-hidden="true">
+                <label for="company">Company</label>
+                <input id="company" name="company" tabindex="-1" autocomplete="off" />
+              </div>
+
+              <label class="field" for="name">
+                <span>name</span>
+                <input id="name" name="name" required autocomplete="name" />
+              </label>
+
+              <label class="field" for="email">
+                <span>email</span>
+                <input id="email" name="email" type="email" required autocomplete="email" />
+              </label>
+
+              <label class="field" for="message">
+                <span>message</span>
+                <textarea id="message" name="message" required></textarea>
+              </label>
+
+              <button class="btn btn--primary" type="submit" style="margin-top: 1.25rem">
+                Send message
+              </button>
+
+              <p class="form__status" id="form-status" role="status" aria-live="polite"></p>
+            </form>
+
+            <aside class="contact-aside">
+              <div class="contact-aside__group">
+                <p class="eyebrow">or just email me</p>
+                <p style="margin-top: 0.5rem">
+                  <a href="mailto:nishtha.gupta.446@gmail.com">nishtha.gupta.446@gmail.com</a>
+                </p>
+              </div>
+
+              <div class="contact-aside__group">
+                <p class="eyebrow">elsewhere</p>
+                <ul style="margin-top: 0.5rem">
+                  <li><a href="https://github.com/capblack222" target="_blank" rel="noreferrer">GitHub — capblack222</a></li>
+                  <li style="margin-top: 0.35rem"><a href="https://linkedin.com/in/gupnish" target="_blank" rel="noreferrer">LinkedIn — gupnish</a></li>
+                </ul>
+              </div>
+
+              <div class="contact-aside__group print-hide">
+                <p class="eyebrow">resume</p>
+                <p style="margin-top: 0.5rem; font-size: 15px">
+                  Press <kbd>Cmd</kbd>+<kbd>P</kbd> — this page prints as a clean
+                  one-page CV.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap">
+        <p>Nishtha Gupta — built with plain HTML, CSS, and JavaScript. 2026.</p>
+      </div>
+    </footer>
+
+    <script src="main.js" defer></script>
+  </body>
+</html>
