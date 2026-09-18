@@ -168,10 +168,6 @@ a:hover {
   color: var(--accent-ink);
 }
 
-.print-only {
-  display: none;
-}
-
 /* Shell-prompt label. The $ is decorative, so it lives in CSS rather than
    in the markup — a screen reader reads the label, not the punctuation. */
 .eyebrow {
@@ -312,29 +308,6 @@ a:hover {
 
 .hero h1 {
   font-size: clamp(2.1rem, 6vw, 3.9rem);
-}
-
-/* Blinking block cursor. Decorative, and the animation is switched off
-   under prefers-reduced-motion at the bottom of this file. */
-.hero h1::after {
-  content: "";
-  display: inline-block;
-  width: 0.55em;
-  height: 0.92em;
-  margin-left: 0.14em;
-  vertical-align: -0.1em;
-  background: var(--accent);
-  animation: blink 1.15s step-end infinite;
-}
-
-@keyframes blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
 }
 
 .hero__meta {
@@ -895,10 +868,6 @@ a:hover {
     display: none;
   }
 
-  .hero h1::after {
-    animation: none;
-  }
-
   *,
   *::before,
   *::after {
@@ -909,16 +878,20 @@ a:hover {
 }
 
 /* ==========================================================================
-   Print — Cmd+P produces a resume of roughly one to one and a half pages.
+   Print — minimal only.
 
-   Paper is always light regardless of the on-screen theme, and the type
-   switches to a serif: monospace is the site's identity but it is wasteful
-   on a page with a fixed budget.
+   The previous version tried to reformat this page into a one-page resume.
+   That was the wrong tool: a resume has a fixed budget and needs editorial
+   selection, which a stylesheet over a portfolio cannot do well. The real
+   resume is the compiled LaTeX PDF linked in the contact section.
+
+   What remains here just stops a printed page looking broken: force light,
+   drop the interactive chrome, keep the text readable.
    ========================================================================== */
 
 @media print {
   @page {
-    margin: 12mm;
+    margin: 16mm;
   }
 
   :root,
@@ -935,55 +908,18 @@ a:hover {
     --green: #000;
   }
 
-  /* --- 1. hide the furniture --- */
   .nav,
-  .hero__actions,
-  .status,
-  .diagram,
-  .form,
-  .footer,
-  .skip,
-  .eyebrow,
   .theme-toggle,
-  .print-hide {
+  .hero__actions,
+  .form,
+  .skip,
+  .footer {
     display: none !important;
-  }
-
-  .print-only {
-    display: block !important;
-  }
-
-  .hero h1::after {
-    display: none;
-  }
-
-  /* --- 2. cut the long tails ---
-     The screen version earns attention with depth. Paper has a hard budget,
-     so each list keeps only its strongest entries. Change the numbers below
-     to let more through.
-  */
-  .project .bullets li:nth-child(n + 3),
-  .timeline .bullets li:nth-child(n + 5) {
-    display: none;
-  }
-
-  html {
-    font-size: 9.5pt;
   }
 
   body {
     background: #fff;
     color: #000;
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 9.5pt;
-    line-height: 1.35;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4 {
-    font-family: Georgia, "Times New Roman", serif;
   }
 
   .wrap {
@@ -991,136 +927,11 @@ a:hover {
     padding: 0;
   }
 
-  .hero {
-    padding: 0 0 0.35rem;
-  }
-
-  .hero h1 {
-    font-size: 19pt;
-  }
-
-  .hero__meta {
-    margin-top: 0.15rem;
-    font-size: 9pt;
-  }
-
-  .hero__headline {
-    margin-top: 0.35rem;
-    max-width: none;
-    font-size: 11pt;
-  }
-
-  .hero__sub {
-    margin-top: 0.1rem;
-  }
-
-  .print-contact {
-    margin-top: 0.3rem;
-    font-size: 9pt;
-    color: #333;
-  }
-
   .section {
-    padding: 0.55rem 0;
-    border-top: 1px solid #ccc;
     break-inside: avoid;
-  }
-
-  .section__body {
-    margin-top: 0.5rem;
-  }
-
-  .section__title,
-  h3,
-  h4,
-  .project__head h3 {
-    font-size: 11pt;
-  }
-
-  .project__pitch,
-  .compact p,
-  .caveat {
-    margin-top: 0.15rem;
-  }
-
-  .bullets li {
-    margin-top: 0.15rem;
-  }
-
-  .bullets span {
-    max-width: none;
-  }
-
-  .skill-group + .skill-group {
-    margin-top: 0.4rem;
-  }
-
-  .role__company,
-  .award {
-    margin-top: 0.1rem;
-  }
-
-  .role__note {
-    display: none;
-  }
-
-  .grid-2,
-  .grid-2--even,
-  .compact-grid,
-  .metrics {
-    display: block;
-  }
-
-  .card,
-  .metric,
-  .award {
-    border: none;
-    background: transparent;
-    padding: 0;
-  }
-
-  .metric {
-    display: inline-block;
-    margin-right: 2rem;
-  }
-
-  .metric__value {
-    font-size: 14pt;
-    color: #000;
-  }
-
-  .tags {
-    gap: 0 0.4rem;
-  }
-
-  .timeline {
-    border-left: none;
-    padding-left: 0;
-  }
-
-  .timeline > li::before,
-  .bullets li::before,
-  .certs li::before {
-    display: none;
-  }
-
-  .bullets li,
-  .certs li {
-    display: list-item;
-    list-style: disc;
-    margin-left: 1rem;
-    margin-top: 0.2rem;
   }
 
   a {
     color: #000;
-    text-decoration: none;
-  }
-
-  .contact-aside a[href^="http"]::after,
-  .contact-aside a[href^="mailto"]::after {
-    content: " (" attr(href) ")";
-    font-size: 8.5pt;
-    color: #555;
   }
 }

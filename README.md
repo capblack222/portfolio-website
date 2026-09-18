@@ -48,7 +48,7 @@ All clear WCAG AA in both modes. `--muted` is the one to re-check if you touch i
 
 **Dark mode** works three ways: an inline script in `<head>` applies a saved choice before first paint (no flash), `prefers-color-scheme` picks the starting mode for anyone who hasn't chosen, and the nav button overrides and saves to `localStorage`. The button label names the mode you'd switch *to*.
 
-**Terminal touches** are all CSS, no markup noise: the `$` before section labels and `~/` before the nav name are `::before` content, so screen readers get the label without the punctuation. The blinking block cursor after the name stops under `prefers-reduced-motion`.
+**Terminal touches** are all CSS, no markup noise: the `$` before section labels and `~/` before the nav name are `::before` content, so screen readers get the label without the punctuation.
 
 **Print switches to serif and forces light**, whatever the screen theme. Monospace is the site's identity but it's wasteful on a page with a fixed budget.
 
@@ -56,23 +56,9 @@ All clear WCAG AA in both modes. `--muted` is the one to re-check if you touch i
 
 **The architecture diagram** is inline SVG with three CSS-animated squares. The animation is disabled under `prefers-reduced-motion`, and the SVG carries a `<title>` so it isn't silent to screen readers.
 
-**Print:** Cmd+P produces a resume of roughly one to one and a half pages.
+**Print** is minimal now — it forces light, hides the nav and form, and gets out of the way. The previous version tried to reformat the page into a one-page resume; that was the wrong tool, because a resume needs editorial selection that a stylesheet over a portfolio can't do well.
 
-The screen version earns attention with depth; paper has a hard budget, so printing *selects* rather than just shrinking. Two mechanisms:
-
-- **`class="print-hide"`** on an element drops it and everything inside it. Currently applied to: the first about paragraph, planned certifications, the "also built" projects, the second-tier skills panel, the TIAA internship, publication and leadership, and the whole contact section.
-- **Bullet caps** in `styles.css` keep the first 2 bullets per project and the first 4 per role:
-
-  ```css
-  .project .bullets li:nth-child(n + 3),
-  .timeline .bullets li:nth-child(n + 5) { display: none; }
-  ```
-
-Add or remove `print-hide` in `index.html` to change what prints; change those two numbers to let more bullets through.
-
-Because the contact section is hidden, a `print-only` line under the header carries your email and links. If you change your email, **update it in both places**.
-
-Link destinations print after the text, since paper isn't clickable.
+The real resume is the compiled LaTeX PDF. **Drop it at `assets/resume.pdf`** and the download link in the contact section starts working.
 
 ## Contact form
 
@@ -84,19 +70,20 @@ Setup is in [`infra/README.md`](infra/README.md).
 
 ## Deploying
 
-Full runbook in [`infra/README.md`](infra/README.md). Short version:
+Once set up, the whole process is:
 
 ```bash
-aws s3 sync . s3://YOUR-BUCKET \
-  --exclude ".*" --exclude "docs/*" --exclude "infra/*" \
-  --exclude "legacy-nextjs/*" --exclude "README.md" --delete
-
-aws cloudfront create-invalidation --distribution-id EXXXXXXXXXXXXX --paths "/*"
+git push origin main
 ```
 
-Don't skip the invalidation — CloudFront caches for 24 hours and you'll think the deploy failed.
+GitHub Actions syncs to S3 and invalidates CloudFront. Live in about two minutes.
 
-**Use CloudFront, not S3 static website hosting.** S3's website endpoints can't serve HTTPS on a custom domain.
+First-time setup is in [`infra/README.md`](infra/README.md) — bucket and CloudFront, then the deploy role, then the contact form. Two things worth knowing going in:
+
+- **Use CloudFront, not S3 static website hosting.** S3's website endpoints can't serve HTTPS on a custom domain.
+- **Authentication is OIDC, not access keys.** GitHub mints a short-lived token scoped to this repo's `main` branch; no long-lived secret exists to leak. Ten extra minutes, and it's the version worth explaining in an interview.
+
+The workflow lives at `.github/workflows/deploy.yml`. It publishes a whitelist — `index.html`, `styles.css`, `main.js`, `assets/` — so nothing else in the repo can reach the bucket by accident.
 
 ## The old version
 

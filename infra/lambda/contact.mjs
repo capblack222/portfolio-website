@@ -8,7 +8,7 @@
  * Environment variables:
  *   CONTACT_TO_EMAIL    verified SES address that receives the message
  *   CONTACT_FROM_EMAIL  verified SES address messages are sent from
- *   ALLOWED_ORIGIN      your site origin, e.g. https://nishtha.dev
+ *   ALLOWED_ORIGIN      your site origin, e.g. https://gupnish.dev
  */
 
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";

@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local AWS policy scratch files — these contain your account ID, which
+# should not be published in a public repo.
+alias.json
+trust-policy.json
+deploy-policy.json
