@@ -53,26 +53,12 @@ jobs:
           grep -q "<h1>Nishtha Gupta</h1>" dist/index.html || {
             echo "index.html does not contain the expected heading"; exit 1; }
 
-      # TEMPORARY DIAGNOSTIC — delete once the deploy is green.
-      # Prints the exact `sub` claim GitHub will present to AWS, so it can be
-      # diffed against the trust policy character by character. Reveals no
-      # secret values: it reports only whether they are non-empty.
-      - name: OIDC debug
-        run: |
-          echo "repository : ${{ github.repository }}"
-          echo "ref        : ${{ github.ref }}"
-          echo "event      : ${{ github.event_name }}"
-          echo
-          echo "sub GitHub will send:"
-          echo "  repo:${{ github.repository }}:ref:${{ github.ref }}"
-          echo
-          echo "AWS_DEPLOY_ROLE_ARN is set        : ${{ secrets.AWS_DEPLOY_ROLE_ARN != '' }}"
-          echo "CLOUDFRONT_DISTRIBUTION_ID is set : ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID != '' }}"
-          echo "role arn length                   : ${#ROLE_ARN}"
-          echo "role arn account digits           : $(echo "$ROLE_ARN" | grep -oE '::[0-9]{12}:' || echo 'NO 12-DIGIT ACCOUNT FOUND')"
-        env:
-          ROLE_ARN: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-
+      # The role's trust policy pins the immutable OIDC subject, including the
+      # numeric GitHub owner and repo IDs:
+      #   repo:capblack222@66949977/portfolio-website@1319882383:ref:refs/heads/main
+      # If this ever starts failing with "Not authorized to perform
+      # sts:AssumeRoleWithWebIdentity", read the claim that was actually
+      # presented rather than the one you expect — see infra/README.md 2.2.
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
