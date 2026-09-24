@@ -71,8 +71,8 @@
         <nav class="nav__links" aria-label="Sections">
           <a href="#about">about</a>
           <a href="#projects">projects</a>
-          <a href="#skills">skills</a>
           <a href="#experience">experience</a>
+          <a href="#skills">skills</a>
           <a href="#contact">contact</a>
         </nav>
         <button
@@ -279,7 +279,7 @@
         </section>
 
         <!-- ===== projects ===== -->
-        <section class="section" id="projects">
+        <section class="section section--lead" id="projects">
           <p class="eyebrow">projects</p>
           <h2 class="section__title">Systems, and the decisions behind them</h2>
 
@@ -422,8 +422,118 @@
           </div>
         </section>
 
+        <!-- ===== experience ===== -->
+        <section class="section" id="experience">
+          <p class="eyebrow">experience</p>
+
+          <div class="section__body">
+            <ol class="timeline">
+              <li>
+                <div class="role__head">
+                  <h3>Software Analyst</h3>
+                  <p class="role__dates">Jul 2023 — Nov 2025</p>
+                </div>
+                <p class="role__company">TIAA <span>· Mumbai, India</span></p>
+                <p class="award">Best Fresher of the Year, 2024</p>
+                <ul class="bullets bullets--quiet">
+                  <li><span>Automated 100+ regression and integration tests with Selenium WebDriver, Copado, and TestNG, cutting suite runtime from 2 hours to under 15 minutes.</span></li>
+                  <li><span>Traced participant and institutional data across MuleSoft APIs, MDM, Snowflake, and Salesforce, isolating transformation and synchronisation issues across customer-facing workflows.</span></li>
+                  <li><span>Recovered 100+ engineering hours per sprint for a 5-engineer delivery group by eliminating repetitive manual validation.</span></li>
+                  <li><span>Investigated MDM defects causing duplicate and mismatched profiles, reducing record-related service escalations by 60%.</span></li>
+                  <li><span>Validated MuleSoft API data loads and transformations, catching 5–7 critical import and data-quality issues per release cycle before production.</span></li>
+                  <li><span>Validated the Siebel-to-Salesforce migration across millions of records and 75+ legacy entities, surfacing 150+ field-level discrepancies before cutover.</span></li>
+                  <li><span>Reconciled Salesforce operational data against Snowflake analytical datasets, validating alignment with the system of record.</span></li>
+                  <li><span>Designed a release-monitoring dashboard tracking test phases, defect status, and validation progress across recurring deployment cycles.</span></li>
+                </ul>
+              </li>
+
+              <li>
+                <div class="role__head">
+                  <h3>Backend Team Lead</h3>
+                  <p class="role__dates">Nov 2021 — Jan 2023</p>
+                </div>
+                <p class="role__company">SHRAM <span>· Mumbai, India</span></p>
+                <ul class="bullets bullets--quiet">
+                  <li><span>Led a 3-engineer backend team within a 9-person product organisation, setting technical direction and implementation standards for 15–20 customer teams.</span></li>
+                  <li><span>Owned the module-by-module migration from Java/Spring Boot to Node.js, preserving REST API contracts while the legacy system stayed operational, and executed a controlled ~2-hour production cutover.</span></li>
+                  <li><span>Optimised task-assignment and delegation workflows by indexing lookup paths and consolidating repeated queries, reducing database round trips from up to 3 per request to 1.</span></li>
+                  <li><span>Built a performance analytics service and REST API layer consumed by web dashboards, improving dashboard load times by 30%.</span></li>
+                  <li><span>Designed Firebase notifications for mobile and web clients, supporting ~70 daily and ~250 peak notifications.</span></li>
+                  <li><span>Established API design guidelines and code-review practices, reducing frontend/backend integration rework, and mentored 3 junior developers.</span></li>
+                </ul>
+                <p class="role__note">
+                  Part-time, promoted from Backend Developer. Two stints — Nov
+                  2021 to May 2022 and Aug 2022 to Jan 2023 — held alongside
+                  full-time undergraduate coursework. Gamified B2B productivity
+                  platform.
+                </p>
+              </li>
+
+              <li>
+                <div class="role__head">
+                  <h3>Student Intern</h3>
+                  <p class="role__dates">Jun 2022 — Jul 2022</p>
+                </div>
+                <p class="role__company">TIAA <span>· Pune, India</span></p>
+                <ul class="bullets bullets--quiet">
+                  <li><span>Developed RESTful APIs with Django REST Framework for an AI/NLP application, building Python backend services and integrating components end to end.</span></li>
+                  <li><span>Built user-facing features with Django, HTML, CSS, and Bootstrap alongside cross-functional Agile teams.</span></li>
+                  <li><span>Validated application behaviour across 3 device emulators spanning Android and iOS, and turned testing findings into usability recommendations that shipped.</span></li>
+                </ul>
+              </li>
+            </ol>
+
+            <div class="grid-2 grid-2--even appendix">
+              <div>
+                <p class="eyebrow">publication</p>
+                <p style="margin-top: 0.85rem; color: var(--ink); font-size: 14px">
+                  Driver Drowsiness Detection and Alert System
+                </p>
+                <p style="margin-top: 0.2rem; font-size: 13.5px">
+                  Published and presented at Hinweis ASIT 2023 — Second
+                  International Conference on Advances in Software Engineering
+                  and Information Technology.
+                </p>
+              </div>
+
+              <div>
+                <p class="eyebrow">leadership</p>
+                <ul style="margin-top: 0.85rem">
+                  <li style="margin-top: 0.8rem">
+                    <p style="color: var(--ink); font-size: 14px">
+                      NSS Lead <span style="color: var(--muted)">— National Service Scheme</span>
+                    </p>
+                    <p style="font-size: 13.5px">
+                      Led nonprofit education and outreach initiatives reaching
+                      500+ underprivileged children.
+                    </p>
+                  </li>
+                  <li style="margin-top: 0.8rem">
+                    <p style="color: var(--ink); font-size: 14px">
+                      Women in Tech Lead
+                      <span style="color: var(--muted)">— Google Developer Student Clubs, RAIT</span>
+                    </p>
+                    <p style="font-size: 13.5px">
+                      Organised technical events and mentored students.
+                    </p>
+                  </li>
+                  <li style="margin-top: 0.8rem">
+                    <p style="color: var(--ink); font-size: 14px">
+                      Intern Lead <span style="color: var(--muted)">— SDG Cell, RAIT</span>
+                    </p>
+                    <p style="font-size: 13.5px">
+                      Mentored 27 interns and coordinated stakeholders across
+                      project delivery.
+                    </p>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- ===== skills ===== -->
-        <section class="section" id="skills">
+        <section class="section section--quiet" id="skills">
           <p class="eyebrow">skills</p>
           <div class="section__body grid-2">
             <div>
@@ -491,116 +601,6 @@
                 </div>
               </div>
             </aside>
-          </div>
-        </section>
-
-        <!-- ===== experience ===== -->
-        <section class="section" id="experience">
-          <p class="eyebrow">experience</p>
-
-          <div class="section__body">
-            <ol class="timeline">
-              <li>
-                <div class="role__head">
-                  <h3>Software Analyst</h3>
-                  <p class="role__dates">Jul 2023 — Nov 2025</p>
-                </div>
-                <p class="role__company">TIAA <span>· Mumbai, India</span></p>
-                <p class="award">Best Fresher of the Year, 2024</p>
-                <ul class="bullets bullets--quiet">
-                  <li><span>Automated 100+ regression and integration tests with Selenium WebDriver, Copado, and TestNG, cutting suite runtime from 2 hours to under 15 minutes.</span></li>
-                  <li><span>Traced participant and institutional data across MuleSoft APIs, MDM, Snowflake, and Salesforce, isolating transformation and synchronisation issues across customer-facing workflows.</span></li>
-                  <li><span>Recovered 100+ engineering hours per sprint for a 5-engineer delivery group by eliminating repetitive manual validation.</span></li>
-                  <li><span>Investigated MDM defects causing duplicate and mismatched profiles, reducing record-related service escalations by 60%.</span></li>
-                  <li><span>Validated MuleSoft API data loads and transformations, catching 5–7 critical import and data-quality issues per release cycle before production.</span></li>
-                  <li><span>Validated the Siebel-to-Salesforce migration across millions of records and 75+ legacy entities, surfacing 150+ field-level discrepancies before cutover.</span></li>
-                  <li><span>Reconciled Salesforce operational data against Snowflake analytical datasets, validating alignment with the system of record.</span></li>
-                  <li><span>Designed a release-monitoring dashboard tracking test phases, defect status, and validation progress across recurring deployment cycles.</span></li>
-                </ul>
-              </li>
-
-              <li>
-                <div class="role__head">
-                  <h3>Backend Team Lead</h3>
-                  <p class="role__dates">Nov 2021 — Jan 2023</p>
-                </div>
-                <p class="role__company">SHRAM <span>· Mumbai, India</span></p>
-                <ul class="bullets bullets--quiet">
-                  <li><span>Led a 3-engineer backend team within a 9-person product organisation, setting technical direction and implementation standards for 15–20 customer teams.</span></li>
-                  <li><span>Owned the module-by-module migration from Java/Spring Boot to Node.js, preserving REST API contracts while the legacy system stayed operational, and executed a controlled ~2-hour production cutover.</span></li>
-                  <li><span>Optimised task-assignment and delegation workflows by indexing lookup paths and consolidating repeated queries, reducing database round trips from up to 3 per request to 1.</span></li>
-                  <li><span>Built a performance analytics service and REST API layer consumed by web dashboards, improving dashboard load times by 30%.</span></li>
-                  <li><span>Designed Firebase notifications for mobile and web clients, supporting ~70 daily and ~250 peak notifications.</span></li>
-                  <li><span>Established API design guidelines and code-review practices, reducing frontend/backend integration rework, and mentored 3 junior developers.</span></li>
-                </ul>
-                <p class="role__note">
-                  Part-time, promoted from Backend Developer. Two stints — Nov
-                  2021 to May 2022 and Aug 2022 to Jan 2023 — held alongside
-                  full-time undergraduate coursework. Gamified B2B productivity
-                  platform.
-                </p>
-              </li>
-
-              <li>
-                <div class="role__head">
-                  <h3>Student Intern</h3>
-                  <p class="role__dates">Jun 2022 — Jul 2022</p>
-                </div>
-                <p class="role__company">TIAA <span>· Pune, India</span></p>
-                <ul class="bullets bullets--quiet">
-                  <li><span>Developed RESTful APIs with Django REST Framework for an AI/NLP application, building Python backend services and integrating components end to end.</span></li>
-                  <li><span>Built user-facing features with Django, HTML, CSS, and Bootstrap alongside cross-functional Agile teams.</span></li>
-                  <li><span>Validated application behaviour across 3 device emulators spanning Android and iOS, and turned testing findings into usability recommendations that shipped.</span></li>
-                </ul>
-              </li>
-            </ol>
-
-            <div class="grid-2 grid-2--even" style="margin-top: 3.5rem; border-top: 1px solid var(--line); padding-top: 2.25rem">
-              <div>
-                <p class="eyebrow">publication</p>
-                <p style="margin-top: 0.85rem; color: var(--ink); font-size: 14px">
-                  Driver Drowsiness Detection and Alert System
-                </p>
-                <p style="margin-top: 0.2rem; font-size: 13.5px">
-                  Published and presented at Hinweis ASIT 2023 — Second
-                  International Conference on Advances in Software Engineering
-                  and Information Technology.
-                </p>
-              </div>
-
-              <div>
-                <p class="eyebrow">leadership</p>
-                <ul style="margin-top: 0.85rem">
-                  <li style="margin-top: 0.8rem">
-                    <p style="color: var(--ink); font-size: 14px">
-                      NSS Lead <span style="color: var(--muted)">— National Service Scheme</span>
-                    </p>
-                    <p style="font-size: 13.5px">
-                      Led nonprofit education and outreach initiatives reaching
-                      500+ underprivileged children.
-                    </p>
-                  </li>
-                  <li style="margin-top: 0.8rem">
-                    <p style="color: var(--ink); font-size: 14px">
-                      Women in Tech Lead
-                      <span style="color: var(--muted)">— Google Developer Student Clubs, RAIT</span>
-                    </p>
-                    <p style="font-size: 13.5px">
-                      Organised technical events and mentored students.
-                    </p>
-                  </li>
-                  <li style="margin-top: 0.8rem">
-                    <p style="color: var(--ink); font-size: 14px">
-                      Intern Lead <span style="color: var(--muted)">— SDG Cell, RAIT</span>
-                    </p>
-                    <p style="font-size: 13.5px">
-                      Mentored 27 interns and coordinated stakeholders across
-                      project delivery.
-                    </p>
-                  </li>
-                </ul>
-              </div>
-            </div>
           </div>
         </section>
 

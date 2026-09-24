@@ -555,6 +555,50 @@ a:hover {
   }
 }
 
+/* --- section weight ------------------------------------------------------
+   Sections are not equal, and giving them identical padding and heading sizes
+   tells a visitor the opposite. Projects carries the evidence someone came
+   for, so it gets more air and a larger heading. The reference material at the
+   tail — skills, publication, leadership — is set quieter. Same content, but
+   the page stops insisting everything matters the same amount.
+   ------------------------------------------------------------------------- */
+
+.section--lead {
+  padding-top: 5.5rem;
+}
+
+.section--lead .section__title {
+  font-size: clamp(1.6rem, 3.4vw, 2.3rem);
+}
+
+.section--quiet {
+  padding: 2.75rem 0;
+}
+
+.section--quiet h3 {
+  font-size: 1rem;
+}
+
+.section--quiet .section__body {
+  margin-top: 1.6rem;
+}
+
+.section--quiet .caveat {
+  font-size: 12.5px;
+}
+
+/* Publication and leadership: present, cited, not competing. */
+.appendix {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.appendix .eyebrow {
+  font-size: 10.5px;
+}
+
 /* --- lists --------------------------------------------------------------- */
 
 .bullets li {
