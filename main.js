@@ -122,7 +122,7 @@
      no form, so the failure is always visible.
   */
 
-  var ENDPOINT = ""; // <- paste your API Gateway invoke URL here
+  var ENDPOINT = "https://dy7tc7pcse.execute-api.us-east-1.amazonaws.com/contact";
 
   var form = document.getElementById("contact-form");
   var statusEl = document.getElementById("form-status");

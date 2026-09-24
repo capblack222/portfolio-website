@@ -206,7 +206,7 @@ Save this as `trust-policy.json`, replacing the account ID:
       "Condition": {
         "StringEquals": {
           "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-          "token.actions.githubusercontent.com:sub": "repo:capblack222/portfolio-website:ref:refs/heads/main"
+          "token.actions.githubusercontent.com:sub": "repo:capblack222@66949977/portfolio-website@1319882383:ref:refs/heads/main"
         }
       }
     }
@@ -215,6 +215,24 @@ Save this as `trust-policy.json`, replacing the account ID:
 ```
 
 That `sub` condition is the security boundary: **only** pushes to `main` in **that** repository can assume this role. A fork, a pull request, or another repo gets nothing. Use `StringEquals`, not `StringLike` with a wildcard — a trailing `*` here is how people accidentally let any branch deploy to production.
+
+### The immutable subject format
+
+Note the `@66949977` and `@1319882383` in the `sub` above. Those are the numeric GitHub owner ID and repository ID, and this account sends the **immutable** subject format rather than the plain `repo:owner/name:ref:...` shown in most tutorials.
+
+If you copy the plain form from a guide, STS returns `Not authorized to perform sts:AssumeRoleWithWebIdentity` while every piece of your configuration looks correct — because it is correct, just not matching.
+
+To find the real value, read what was actually presented rather than what you expect:
+
+```bash
+aws cloudtrail lookup-events \
+  --lookup-attributes AttributeKey=EventName,AttributeValue=AssumeRoleWithWebIdentity \
+  --max-results 1 --region us-east-1 \
+  --query 'Events[0].CloudTrailEvent' --output text \
+  | python3 -c "import sys,json;print(json.load(sys.stdin)['userIdentity']['userName'])"
+```
+
+Use only the immutable form, not both. The plain form contains a repository *name*, and names can be released and re-registered — if you ever rename this repo, someone claiming the old name would match a trust policy that still accepts the mutable subject. The numeric IDs can't be reassigned.
 
 ```bash
 aws iam create-role \
@@ -314,55 +332,158 @@ SES starts every new account in **sandbox mode**: you can only send *to* verifie
 
 Verify your address in SES → Identities. Use the same address for `CONTACT_TO_EMAIL` and `CONTACT_FROM_EMAIL` until you own a domain.
 
-### 3.2 Lambda
+### 3.2 Lambda execution role
 
-Create a function:
+Least privilege from the start: basic logging, plus `ses:SendEmail` scoped to the one verified identity — not `"Resource": "*"`.
 
-- Runtime **Node.js 22.x**, architecture `arm64`
-- Paste in `lambda/contact.mjs`
-
-The AWS SDK v3 ships with the runtime, so there's nothing to install.
-
-Environment variables:
-
-```
-CONTACT_TO_EMAIL    = nishtha.gupta.446@gmail.com
-CONTACT_FROM_EMAIL  = nishtha.gupta.446@gmail.com
-ALLOWED_ORIGIN      = https://gupnish.dev
-```
-
-Inline policy on the execution role:
-
-```json
+```bash
+cat > /tmp/lambda-trust.json <<'EOF'
 {
   "Version": "2012-10-17",
-  "Statement": [
-    { "Effect": "Allow", "Action": "ses:SendEmail", "Resource": "*" }
-  ]
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": { "Service": "lambda.amazonaws.com" },
+    "Action": "sts:AssumeRole"
+  }]
 }
+EOF
+
+aws iam create-role --role-name portfolio-contact-lambda \
+  --assume-role-policy-document file:///tmp/lambda-trust.json
+
+aws iam attach-role-policy --role-name portfolio-contact-lambda \
+  --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+cat > /tmp/ses-send.json <<'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": "ses:SendEmail",
+    "Resource": "arn:aws:ses:us-east-1:YOUR_ACCOUNT_ID:identity/nishtha.gupta.446@gmail.com"
+  }]
+}
+EOF
+
+aws iam put-role-policy --role-name portfolio-contact-lambda \
+  --policy-name ses-send --policy-document file:///tmp/ses-send.json
 ```
 
-Scope `Resource` to your verified identity ARN once it's stable.
+### 3.3 Package and create the function
 
-### 3.3 API Gateway
+```bash
+cd ~/Documents/projects/portfolio-website/infra/lambda
+zip -j /tmp/contact.zip contact.mjs
 
-Create an **HTTP API** (not REST — cheaper and simpler):
+aws lambda create-function \
+  --function-name portfolio-contact \
+  --runtime nodejs22.x \
+  --architectures arm64 \
+  --handler contact.handler \
+  --role arn:aws:iam::YOUR_ACCOUNT_ID:role/portfolio-contact-lambda \
+  --zip-file fileb:///tmp/contact.zip \
+  --timeout 10 --memory-size 256 \
+  --environment "Variables={CONTACT_TO_EMAIL=nishtha.gupta.446@gmail.com,CONTACT_FROM_EMAIL=nishtha.gupta.446@gmail.com,ALLOWED_ORIGIN=https://gupnish.dev}" \
+  --region us-east-1
+```
 
-- Route: `POST /contact` → Lambda integration
-- CORS: allow origin `https://gupnish.dev`, header `content-type`, methods `POST` and `OPTIONS`
-- Default Route Settings: burst 5, rate 2 req/sec
+> If this fails with *"The role defined for the function cannot be assumed by Lambda"*, the role hasn't propagated yet. Wait ten seconds and re-run — IAM is eventually consistent, and this trips people constantly.
 
-A portfolio form never needs more than that, and the throttle caps what a bot can cost you.
+The handler is `contact.handler` because the file is `contact.mjs` and it exports `handler`.
 
-### 3.4 Wire it up
+### 3.4 API Gateway
+
+Quick-create builds the integration, route, and auto-deploying `$default` stage in one call:
+
+```bash
+aws apigatewayv2 create-api \
+  --name portfolio-contact-api \
+  --protocol-type HTTP \
+  --target arn:aws:lambda:us-east-1:YOUR_ACCOUNT_ID:function:portfolio-contact \
+  --route-key "POST /contact" \
+  --cors-configuration AllowOrigins=https://gupnish.dev,AllowMethods=POST,OPTIONS,AllowHeaders=content-type,MaxAge=300 \
+  --region us-east-1
+```
+
+The output returns two values that are easy to confuse:
+
+| Field | Example | Used for |
+|---|---|---|
+| `ApiId` | `dy7tc7pcse` | every `aws apigatewayv2` command |
+| `ApiEndpoint` | `https://dy7tc7pcse.execute-api.us-east-1.amazonaws.com` | the URL your site posts to |
+
+`--api-id` wants the short ID. Passing the full endpoint gives you `NotFoundException: Invalid API identifier specified`.
+
+**Grant API Gateway permission to invoke the function.** Quick-create does not reliably add this, and without it every request returns `500 Internal Server Error` with no Lambda logs at all — because the function is never invoked:
+
+```bash
+aws lambda add-permission \
+  --function-name portfolio-contact \
+  --statement-id apigw-invoke \
+  --action lambda:InvokeFunction \
+  --principal apigateway.amazonaws.com \
+  --source-arn "arn:aws:execute-api:us-east-1:YOUR_ACCOUNT_ID:YOUR_API_ID/*/*/contact" \
+  --region us-east-1
+```
+
+Verify with `aws lambda get-policy --function-name portfolio-contact`. The `source-arn` matters: without it, any API Gateway in any AWS account could invoke your function.
+
+Then cap what a bot can cost you:
+
+```bash
+aws apigatewayv2 update-stage \
+  --api-id YOUR_API_ID --stage-name '$default' \
+  --default-route-settings ThrottlingBurstLimit=5,ThrottlingRateLimit=2 \
+  --region us-east-1
+```
+
+**The CORS origin must match your site exactly** — scheme included, no trailing slash. `https://gupnish.dev` works; `gupnish.dev` or `https://gupnish.dev/` will fail preflight, and the browser reports it as a generic network error rather than anything useful.
+
+### 3.5 Test before wiring it into the site
+
+```bash
+curl -i -X POST "https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/contact" \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Test","email":"nishtha.gupta.446@gmail.com","message":"Testing the contact pipeline."}'
+```
+
+Expect `200` and `{"ok":true}`, and an email within a minute. **A missing log group is itself a diagnosis.** Lambda creates `/aws/lambda/portfolio-contact` on first invocation — if it doesn't exist after a request, the function never ran and the fault is upstream in API Gateway, not in your code.
+
+To isolate Lambda from API Gateway, invoke it directly:
+
+```bash
+aws lambda invoke --function-name portfolio-contact \
+  --cli-binary-format raw-in-base64-out \
+  --payload '{"requestContext":{"http":{"method":"POST"}},"body":"{\"name\":\"T\",\"email\":\"nishtha.gupta.446@gmail.com\",\"message\":\"test\"}"}' \
+  /tmp/out.json --region us-east-1 && cat /tmp/out.json
+```
+
+If that succeeds but the HTTP call doesn't, the problem is the invoke permission or the route. If it fails, read the logs:
+
+```bash
+aws logs tail /aws/lambda/portfolio-contact --since 5m --region us-east-1
+```
+
+Also confirm the honeypot and validation work — these should return 400 and 200-without-sending respectively:
+
+```bash
+# missing fields -> 400
+curl -s -X POST "$ENDPOINT/contact" -H 'Content-Type: application/json' -d '{"name":"x"}'
+
+# honeypot filled -> 200 but no email sent
+curl -s -X POST "$ENDPOINT/contact" -H 'Content-Type: application/json' \
+  -d '{"name":"x","email":"a@b.co","message":"y","company":"bot"}'
+```
+
+### 3.6 Wire it up
 
 In `main.js`:
 
 ```js
-var ENDPOINT = "https://abc123.execute-api.us-east-1.amazonaws.com/contact";
+var ENDPOINT = "https://dy7tc7pcse.execute-api.us-east-1.amazonaws.com/contact";
 ```
 
-Push. The workflow deploys it. Submit the form and confirm the email lands.
+Commit and push. The pipeline deploys it. Submit the real form on gupnish.dev and confirm the email arrives.
 
 ---
 
