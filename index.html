@@ -111,9 +111,9 @@
           <!-- ===== metrics ===== -->
           <ul class="metrics">
             <li class="metric">
-              <p class="metric__value">85ms &rarr; 12ms</p>
+              <p class="metric__value">20&ndash;50&times;</p>
               <p class="metric__label">
-                p99 verification latency, a 7&times; improvement, benchmarked in CloudWatch
+                faster p99 verification &mdash; 80&ndash;150ms down to 2&ndash;10ms via a Redis cache-aside layer
               </p>
             </li>
             <li class="metric">
@@ -295,13 +295,14 @@
                 ended.
               </p>
               <ul class="bullets">
-                <li><span>Configured AWS networking and container infrastructure across VPC, load balancing, ECS, and security groups, defining the deployment path and service-level access controls.</span></li>
-                <li><span>Devised an SQS dead-letter queue workflow to isolate verification requests failing during burst traffic, preserving failed work for inspection and controlled retry instead of losing it silently.</span></li>
-                <li><span>Reduced p99 latency from 85ms to 12ms — a 7&times; improvement — by introducing ElastiCache Redis for critical verification data, cutting database utilisation by 25%.</span></li>
-                <li><span>Benchmarked latency and database utilisation in CloudWatch before and after the cache, so the improvement is a measured number rather than an assumption.</span></li>
+                <li><span>Designed AWS networking and container infrastructure across a multi-AZ VPC, ALB, ECS Fargate, and port-scoped security groups, with the full stack provisioned and torn down via 10 modular Terraform components.</span></li>
+                <li><span>Decoupled claim processing from the verification response path using SQS with a dead-letter queue (maxReceiveCount=3, 14-day retention), so verification stays available independently of claims-service failures.</span></li>
+                <li><span>Reduced p99 verification latency 20&ndash;50&times; — 80&ndash;150ms down to 2&ndash;10ms — with an ElastiCache Redis cache-aside layer, while excluding WINNER outcomes from caching to prevent stale claim state across agents.</span></li>
+                <li><span>Benchmarked with a purpose-built script and custom CloudWatch metrics (CacheHit, CacheMiss, VerificationLatency) before and after Redis, validating the cache across both cold and warm request paths.</span></li>
+                <li><span>Evaluated database-per-service decomposition and retained a shared RDS instance by design, with SQS payloads carrying enough context for the claims service to operate independently of the verification data tier.</span></li>
               </ul>
               <div class="tags">
-                <span class="tag">AWS</span><span class="tag">ECS</span><span class="tag">VPC</span><span class="tag">SQS</span><span class="tag">Redis</span>
+                <span class="tag">AWS</span><span class="tag">ECS Fargate</span><span class="tag">VPC</span><span class="tag">SQS</span><span class="tag">ElastiCache</span><span class="tag">Terraform</span>
               </div>
               <p style="margin-top: 1rem">
                 <a href="https://github.com/capblack222/lottery-verification-platform" target="_blank" rel="noreferrer">source ↗</a>
@@ -357,7 +358,7 @@
             <div class="compact-grid">
               <article class="compact card">
                 <div class="project__head">
-                  <h4>Bedrock</h4>
+                  <h4>AWS 3-Tier Infrastructure Platform</h4>
                   <p class="project__role">academic · 2026</p>
                 </div>
                 <p>Modular Terraform infrastructure deploying a 3-tier AWS architecture entirely as code.</p>
@@ -499,18 +500,6 @@
 
           <div class="section__body">
             <ol class="timeline">
-              <li class="is-current">
-                <div class="role__head">
-                  <h3>Graduate Assistant</h3>
-                  <p class="role__dates">Jan 2026 — Present</p>
-                </div>
-                <p class="role__company">
-                  University of Maryland, College Park <span>· College Park, MD</span>
-                </p>
-                <!-- TODO: one line on what this role involves. Not on the master
-                     CV, so nothing here is inferred. -->
-              </li>
-
               <li>
                 <div class="role__head">
                   <h3>Software Analyst</h3>
@@ -665,12 +654,12 @@
                 </ul>
               </div>
 
-              <!-- Drop your compiled LaTeX CV at assets/resume.pdf and this
+              <!-- Drop the compiled LaTeX CV at assets/Nishtha_Gupta_Resume.pdf and this
                    becomes a working download. -->
               <div class="contact-aside__group">
                 <p class="eyebrow">resume</p>
                 <p style="margin-top: 0.5rem">
-                  <a href="assets/resume.pdf" download>Download PDF ↗</a>
+                  <a href="assets/Nishtha_Gupta_Resume.pdf" download>Download PDF ↗</a>
                 </p>
               </div>
             </aside>
