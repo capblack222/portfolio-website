@@ -502,6 +502,152 @@ a:hover {
   }
 }
 
+/* --- lottery diagram -----------------------------------------------------
+   Same primitives as the ClimateWatch diagram (.node-box, .node-label,
+   .flow-line, .packet) so both read as one hand. This variant drops the
+   border because it sits inside a project card that already has one.
+   ------------------------------------------------------------------------- */
+
+.diagram--inline {
+  margin: 1.5rem 0 0;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.diagram--inline svg {
+  margin-top: 0;
+}
+
+.packet--v1 {
+  animation: lottery-in 3.4s linear infinite;
+}
+
+.packet--v2 {
+  animation: lottery-async 3.4s linear infinite 0.7s;
+}
+
+@keyframes lottery-in {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  18%,
+  82% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(56px);
+    opacity: 0;
+  }
+}
+
+@keyframes lottery-async {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  10%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(204px);
+    opacity: 0;
+  }
+}
+
+/* --- card foot -----------------------------------------------------------
+   One hairline and two text controls on a single row — the same vocabulary as
+   every other divider on the page. An earlier version boxed these as chips and
+   a full-width bar, which put three nested borders inside one card and read as
+   clutter on a site built from flat surfaces and hairlines.
+
+   The source link is positioned rather than floated so it always sits on the
+   summary's first line, and the summary reserves room for it so a long label
+   wraps beneath instead of colliding.
+   ------------------------------------------------------------------------- */
+
+.card__foot {
+  position: relative;
+  margin-top: 1.4rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--line);
+}
+
+.card__link {
+  position: absolute;
+  top: 0.9rem;
+  right: 0;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+/* Compact cards have no disclosure, so the link is the only thing here. */
+.card__foot > .card__link:only-child {
+  position: static;
+}
+
+.arch > summary {
+  display: block;
+  padding-right: 6.5rem;
+  font-size: 12.5px;
+  color: var(--accent);
+  cursor: pointer;
+  list-style: none;
+}
+
+.arch > summary::-webkit-details-marker {
+  display: none;
+}
+
+.arch > summary::after {
+  content: " ▸";
+}
+
+.arch[open] > summary::after {
+  content: " ▾";
+}
+
+.arch > summary:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Dashed enclosure marks a traced region rather than a service. */
+.zone-box {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-dasharray: 3 4;
+}
+
+.packet--h1 {
+  animation: hop-60 2.8s linear infinite;
+}
+
+.packet--h2 {
+  animation: hop-60 2.8s linear infinite 0.5s;
+}
+
+.packet--h3 {
+  animation: hop-60 2.8s linear infinite 1s;
+}
+
+@keyframes hop-60 {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  20%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(60px);
+    opacity: 0;
+  }
+}
+
 /* --- sections ------------------------------------------------------------ */
 
 .section {

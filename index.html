@@ -294,6 +294,7 @@
                 infrastructure layer, then kept extending it after the team build
                 ended.
               </p>
+
               <ul class="bullets">
                 <li><span>Designed AWS networking and container infrastructure across a multi-AZ VPC, ALB, ECS Fargate, and port-scoped security groups, with the full stack provisioned and torn down via 10 modular Terraform components.</span></li>
                 <li><span>Decoupled claim processing from the verification response path using SQS with a dead-letter queue (maxReceiveCount=3, 14-day retention), so verification stays available independently of claims-service failures.</span></li>
@@ -304,9 +305,88 @@
               <div class="tags">
                 <span class="tag">AWS</span><span class="tag">ECS Fargate</span><span class="tag">VPC</span><span class="tag">SQS</span><span class="tag">ElastiCache</span><span class="tag">Terraform</span>
               </div>
-              <p style="margin-top: 1rem">
-                <a href="https://github.com/capblack222/lottery-verification-platform" target="_blank" rel="noreferrer">source ↗</a>
-              </p>
+              <div class="card__foot">
+                <details class="arch">
+                  <summary>architecture &mdash; Redis cache-aside, SQS with DLQ, shared Postgres</summary>
+                  <figure class="diagram diagram--inline">
+                    <svg viewBox="0 0 790 300" role="img" aria-labelledby="lottery-diagram-title">
+                      <title id="lottery-diagram-title">
+                        A verification request reaches the verification service through
+                        an application load balancer. The service reads through an
+                        ElastiCache Redis cache and falls back to RDS PostgreSQL.
+                        Winner events are published to an SQS queue consumed by the
+                        claims service; messages that fail three times move to a
+                        dead-letter queue.
+                      </title>
+
+                      <!-- connectors -->
+                      <path class="flow-line" d="M104 145 H160" />
+                      <path class="flow-line" d="M316 138 H340 Q356 138 356 122 V63 H380" stroke-dasharray="4 4" />
+                      <path class="flow-line" d="M316 152 H340 Q356 152 356 168 V227 H380" />
+                      <path class="flow-line" d="M316 145 H520" />
+                      <path class="flow-line" d="M630 145 H684" />
+                      <path class="flow-line" d="M575 172 V222" stroke-dasharray="4 4" />
+
+                      <!-- alb -->
+                      <rect class="node-box" x="16" y="118" width="88" height="54" rx="6" />
+                      <text class="node-label" x="60" y="141" text-anchor="middle">ALB</text>
+                      <text class="node-sub" x="60" y="156" text-anchor="middle">multi-AZ</text>
+
+                      <!-- verification service -->
+                      <rect class="node-box" x="160" y="118" width="156" height="54" rx="6" />
+                      <text class="node-label" x="238" y="141" text-anchor="middle">verification-service</text>
+                      <text class="node-sub" x="238" y="156" text-anchor="middle">ECS Fargate</text>
+
+                      <!-- redis -->
+                      <rect class="node-box" x="380" y="36" width="118" height="54" rx="6" />
+                      <text class="node-label" x="439" y="59" text-anchor="middle">ElastiCache</text>
+                      <text class="node-sub" x="439" y="74" text-anchor="middle">cache-aside</text>
+
+                      <!-- rds -->
+                      <rect class="node-box" x="380" y="200" width="118" height="54" rx="6" />
+                      <text class="node-label" x="439" y="223" text-anchor="middle">RDS Postgres</text>
+                      <text class="node-sub" x="439" y="238" text-anchor="middle">shared, by design</text>
+
+                      <!-- sqs -->
+                      <rect class="node-box" x="520" y="118" width="110" height="54" rx="6" />
+                      <text class="node-label" x="575" y="141" text-anchor="middle">SQS</text>
+                      <text class="node-sub" x="575" y="156" text-anchor="middle">claims queue</text>
+
+                      <!-- claims service -->
+                      <rect class="node-box" x="684" y="118" width="96" height="54" rx="6" />
+                      <text class="node-label" x="732" y="141" text-anchor="middle">claims</text>
+                      <text class="node-sub" x="732" y="156" text-anchor="middle">ECS Fargate</text>
+
+                      <!-- dlq -->
+                      <rect class="node-box" x="520" y="222" width="110" height="46" rx="6" />
+                      <text class="node-label" x="575" y="243" text-anchor="middle">dead-letter</text>
+                      <text class="node-sub" x="575" y="257" text-anchor="middle">14-day retention</text>
+
+                      <!-- path labels -->
+                      <text class="node-sub" x="418" y="137" text-anchor="start">WINNER event</text>
+                      <text class="node-sub" x="584" y="201" text-anchor="start">after 3 retries</text>
+
+                      <!-- packets -->
+                      <rect class="packet packet--v1" x="104" y="141" width="8" height="8" />
+                      <rect class="packet packet--v2" x="316" y="141" width="8" height="8" />
+                    </svg>
+
+                    <figcaption class="diagram__caption">
+                      Verification reads through Redis and falls back to Postgres —
+                      except WINNER outcomes, which always read from Postgres so a
+                      cached result can never show stale claim state to another agent.
+                      Winner events go to SQS, so claim processing can fail without
+                      taking verification down with it; three retries, then the
+                      dead-letter queue holds the message for 14 days. Both services
+                      share one RDS instance, chosen over database-per-service because
+                      the SQS payload already carries enough context for claims to run
+                      independently. The whole stack stands up and tears down through
+                      10 Terraform modules.
+                    </figcaption>
+                  </figure>
+                </details>
+                <a class="card__link" href="https://github.com/capblack222/lottery-verification-platform" target="_blank" rel="noreferrer">source ↗</a>
+              </div>
             </article>
 
             <article class="project card card--lg">
@@ -318,6 +398,7 @@
                 A streaming climate-data pipeline that ingests, persists, and
                 queries records through event-driven workflows.
               </p>
+
               <ul class="bullets">
                 <li><span>Orchestrated the pipeline across Kinesis, DynamoDB, S3, Athena, and EventBridge.</span></li>
                 <li><span>Designed service access patterns around stream buffering, key-value lookup, object storage, and columnar analytics — mapping each workload to Kinesis, DynamoDB, S3, and Athena respectively.</span></li>
@@ -326,9 +407,70 @@
               <div class="tags">
                 <span class="tag">Python</span><span class="tag">Kinesis</span><span class="tag">DynamoDB</span><span class="tag">S3</span><span class="tag">Athena</span><span class="tag">EventBridge</span>
               </div>
-              <p style="margin-top: 1rem">
-                <a href="https://github.com/capblack222/ClimateWatch" target="_blank" rel="noreferrer">source ↗</a>
-              </p>
+              <div class="card__foot">
+                <details class="arch">
+                  <summary>architecture &mdash; Kinesis, EventBridge, DynamoDB, S3 + Athena</summary>
+
+                  <figure class="diagram diagram--inline">
+                    <svg viewBox="0 0 860 290" role="img" aria-labelledby="cw-detail-title">
+                      <title id="cw-detail-title">
+                        Climate producers write into a Kinesis stream. EventBridge
+                        routes each record to DynamoDB for point lookups and to S3
+                        for object storage, where Athena scans it columnar-style at
+                        query time. Ingestion, storage and analysis stay separable.
+                      </title>
+
+                      <path class="flow-line" d="M120 151 H180" />
+                      <path class="flow-line" d="M316 151 H376" />
+                      <path class="flow-line" d="M508 144 H526 Q542 144 542 128 V73 H568" />
+                      <path class="flow-line" d="M508 158 H526 Q542 158 542 174 V229 H568" />
+                      <path class="flow-line" d="M696 229 H756" />
+
+                      <rect class="node-box" x="16" y="124" width="104" height="54" rx="6" />
+                      <text class="node-label" x="68" y="147" text-anchor="middle">climate feed</text>
+                      <text class="node-sub" x="68" y="162" text-anchor="middle">producers</text>
+
+                      <rect class="node-box" x="180" y="124" width="136" height="54" rx="6" />
+                      <text class="node-label" x="248" y="147" text-anchor="middle">Kinesis</text>
+                      <text class="node-sub" x="248" y="162" text-anchor="middle">stream buffering</text>
+
+                      <rect class="node-box" x="376" y="124" width="132" height="54" rx="6" />
+                      <text class="node-label" x="442" y="147" text-anchor="middle">EventBridge</text>
+                      <text class="node-sub" x="442" y="162" text-anchor="middle">routing</text>
+
+                      <rect class="node-box" x="568" y="46" width="128" height="54" rx="6" />
+                      <text class="node-label" x="632" y="69" text-anchor="middle">DynamoDB</text>
+                      <text class="node-sub" x="632" y="84" text-anchor="middle">key-value lookup</text>
+
+                      <rect class="node-box" x="568" y="202" width="128" height="54" rx="6" />
+                      <text class="node-label" x="632" y="225" text-anchor="middle">S3</text>
+                      <text class="node-sub" x="632" y="240" text-anchor="middle">object storage</text>
+
+                      <rect class="node-box" x="756" y="202" width="96" height="54" rx="6" />
+                      <text class="node-label" x="804" y="225" text-anchor="middle">Athena</text>
+                      <text class="node-sub" x="804" y="240" text-anchor="middle">scan on read</text>
+
+                      <text class="node-sub" x="552" y="112" text-anchor="start">hot path</text>
+                      <text class="node-sub" x="552" y="196" text-anchor="start">cold path</text>
+
+                      <rect class="packet packet--h1" x="120" y="147" width="8" height="8" />
+                      <rect class="packet packet--h2" x="316" y="147" width="8" height="8" />
+                      <rect class="packet packet--h3" x="696" y="225" width="8" height="8" />
+                    </svg>
+
+                    <figcaption class="diagram__caption">
+                      Kinesis absorbs the write rate so producers never wait on
+                      storage. EventBridge fans each record out twice: DynamoDB for
+                      point lookups where a single reading is wanted by key, and S3
+                      for the analytical copy, which Athena scans columnar-style
+                      only when a query runs. Nothing is provisioned per query, and
+                      ingestion, storage and analysis can each be changed without
+                      touching the other two.
+                    </figcaption>
+                  </figure>
+                </details>
+                <a class="card__link" href="https://github.com/capblack222/ClimateWatch" target="_blank" rel="noreferrer">source ↗</a>
+              </div>
             </article>
 
             <article class="project card card--lg">
@@ -341,6 +483,7 @@
                 attributed crop recommendations grounded in retrieved evidence
                 rather than unsourced text.
               </p>
+
               <ul class="bullets">
                 <li><span>Architected the agent in Python to retrieve region-specific agricultural sources and attribute every recommendation to them.</span></li>
                 <li><span>Deployed the RAG pipeline on AWS with application and retrieval observability, enabling end-to-end diagnosis of latency across retrieval and inference stages separately.</span></li>
@@ -349,9 +492,75 @@
               <div class="tags">
                 <span class="tag">Python</span><span class="tag">RAG</span><span class="tag">AWS</span><span class="tag">Observability</span>
               </div>
-              <p style="margin-top: 1rem">
-                <a href="https://github.com/capblack222/AgriSense-Agent" target="_blank" rel="noreferrer">source ↗</a>
-              </p>
+              <div class="card__foot">
+                <details class="arch">
+                  <summary>architecture &mdash; API Gateway, Bedrock Knowledge Base, evaluation harness</summary>
+
+                  <figure class="diagram diagram--inline">
+                    <svg viewBox="0 0 860 300" role="img" aria-labelledby="ag-detail-title">
+                      <title id="ag-detail-title">
+                        A question enters through API Gateway and reaches the agent,
+                        which retrieves region-specific sources from a Bedrock
+                        Knowledge Base and passes them to a model for generation.
+                        Retrieval and inference are traced separately, and a fixed
+                        evaluation set exercises the same pipeline offline.
+                      </title>
+
+                      <rect class="zone-box" x="534" y="30" width="170" height="244" rx="8" />
+                      <text class="node-sub" x="619" y="22" text-anchor="middle">latency traced per stage</text>
+
+                      <path class="flow-line" d="M112 151 H172" />
+                      <path class="flow-line" d="M296 151 H356" />
+                      <path class="flow-line" d="M488 144 H506 Q522 144 522 128 V73 H548" />
+                      <path class="flow-line" d="M488 158 H506 Q522 158 522 174 V229 H548" />
+                      <path class="flow-line" d="M688 229 H710 Q726 229 726 213 V151 H748" />
+                      <path class="flow-line" d="M422 178 V236" stroke-dasharray="4 4" />
+
+                      <rect class="node-box" x="16" y="124" width="96" height="54" rx="6" />
+                      <text class="node-label" x="64" y="147" text-anchor="middle">question</text>
+                      <text class="node-sub" x="64" y="162" text-anchor="middle">by region</text>
+
+                      <rect class="node-box" x="172" y="124" width="124" height="54" rx="6" />
+                      <text class="node-label" x="234" y="147" text-anchor="middle">API Gateway</text>
+                      <text class="node-sub" x="234" y="162" text-anchor="middle">entry point</text>
+
+                      <rect class="node-box" x="356" y="124" width="132" height="54" rx="6" />
+                      <text class="node-label" x="422" y="147" text-anchor="middle">agent</text>
+                      <text class="node-sub" x="422" y="162" text-anchor="middle">Python · RAG</text>
+
+                      <rect class="node-box" x="548" y="46" width="140" height="54" rx="6" />
+                      <text class="node-label" x="618" y="69" text-anchor="middle">Knowledge Base</text>
+                      <text class="node-sub" x="618" y="84" text-anchor="middle">retrieval · Bedrock</text>
+
+                      <rect class="node-box" x="548" y="202" width="140" height="54" rx="6" />
+                      <text class="node-label" x="618" y="225" text-anchor="middle">model</text>
+                      <text class="node-sub" x="618" y="240" text-anchor="middle">Bedrock · OpenAI</text>
+
+                      <rect class="node-box" x="748" y="124" width="104" height="54" rx="6" />
+                      <text class="node-label" x="800" y="147" text-anchor="middle">answer</text>
+                      <text class="node-sub" x="800" y="162" text-anchor="middle">with sources</text>
+
+                      <rect class="node-box" x="356" y="236" width="132" height="46" rx="6" />
+                      <text class="node-label" x="422" y="256" text-anchor="middle">evaluation set</text>
+                      <text class="node-sub" x="422" y="270" text-anchor="middle">fixed · repeatable</text>
+
+                      <rect class="packet packet--h1" x="112" y="147" width="8" height="8" />
+                      <rect class="packet packet--h2" x="296" y="147" width="8" height="8" />
+                    </svg>
+
+                    <figcaption class="diagram__caption">
+                      Retrieval and generation are separate stages, and they are
+                      traced separately — so when an answer is slow, it is clear
+                      whether the knowledge base or the model was responsible.
+                      Every recommendation carries the sources it was built from.
+                      The fixed evaluation set runs the same pipeline offline,
+                      which is what makes a retrieval change comparable against the
+                      previous one instead of judged by reading a few answers.
+                    </figcaption>
+                  </figure>
+                </details>
+                <a class="card__link" href="https://github.com/capblack222/AgriSense-Agent" target="_blank" rel="noreferrer">source ↗</a>
+              </div>
             </article>
 
             <p class="eyebrow" style="margin-top: 3rem">also built</p>
@@ -399,8 +608,8 @@
                 <div class="tags">
                   <span class="tag">PostgreSQL</span><span class="tag">MongoDB</span><span class="tag">Neo4j</span><span class="tag">Docker</span>
                 </div>
-                <p style="margin-top: 0.9rem">
-                  <a href="https://github.com/capblack222/Healthcare_System" target="_blank" rel="noreferrer">source ↗</a>
+                <p class="card__foot">
+                  <a class="card__link" href="https://github.com/capblack222/Healthcare_System" target="_blank" rel="noreferrer">source ↗</a>
                 </p>
               </article>
 
