@@ -929,6 +929,25 @@ a:hover {
   color: var(--accent);
 }
 
+/* The leading figure in an experience bullet. Deliberately ink-and-weight
+   rather than accent: the three hero metrics own the accent colour, and if
+   every bullet also shouted in amber the hero would stop being the loudest
+   thing on the page. Darkness alone is enough to make a number scan. */
+.stat {
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scope-not-achievement work: real, worth listing, but it carries no number
+   and no decision, so it sits below the bullets instead of competing. */
+.role__aside {
+  margin-top: 0.95rem;
+  max-width: 78ch;
+  font-size: 13px;
+  color: var(--muted);
+}
+
 .role__note {
   margin-top: 0.9rem;
   padding-left: 0.9rem;
