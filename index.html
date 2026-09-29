@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Nishtha Gupta — Software Engineer</title>
+    <title>Nishtha Gupta - Cloud and Backend Engineering</title>
     <meta
       name="description"
       content="Software engineer and M.Eng. Cloud Engineering student at the University of Maryland. I design event-driven systems on AWS."
@@ -14,11 +14,22 @@
 
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://gupnish.dev/" />
-    <meta property="og:title" content="Nishtha Gupta — Software Engineer" />
+    <meta property="og:title" content="Nishtha Gupta — Cloud and Backend Engineering" />
     <meta
       property="og:description"
       content="I design event-driven systems on AWS. Every service choice answers a specific access pattern."
     />
+    <!-- Absolute URLs: LinkedIn, Slack and iMessage fetch these from their own
+         servers, where a relative path has nothing to resolve against. -->
+    <meta property="og:image" content="https://gupnish.dev/assets/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Nishtha Gupta — Cloud and Backend Engineering. 20–50× faster p99 verification, 2h to 15min regression suite runtime, 100+ engineering hours recovered per sprint."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://gupnish.dev/assets/og-image.png" />
 
     <script>
       // Runs before first paint: applies the saved theme so the page never
@@ -35,14 +46,21 @@
     </script>
 
     <link rel="stylesheet" href="styles.css" />
-    <link rel="icon" href="data:," />
+
+    <!-- One SVG covers every size a browser asks for, at 317 bytes and with no
+         font dependency — the mark is a path, so it cannot render differently
+         on a machine that lacks the typeface. The PNG is only for iOS, which
+         does not accept SVG here and applies its own corner mask, so that file
+         is deliberately square-cornered and full-bleed. -->
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
 
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "Person",
         "name": "Nishtha Gupta",
-        "jobTitle": "Software Engineer",
+        "description": "M.Eng. Cloud Engineering student at the University of Maryland, working in cloud and backend engineering.",
         "url": "https://gupnish.dev",
         "email": "nishtha.gupta.446@gmail.com",
         "address": {
