@@ -1216,6 +1216,62 @@ a:hover {
   }
 }
 
+/* --- scroll progress rail ------------------------------------------------
+   A hairline in the left gutter that fills as you scroll. It is deliberately
+   outside the content column: a stroke crossing body copy competes with
+   reading, which is the whole reason the earlier version was wrong.
+
+   Decorative, so aria-hidden in the markup and absent from the tab order.
+   Below 1280px there is no gutter to sit in, so it is removed rather than
+   squeezed against the text.
+   -------------------------------------------------------------------------- */
+
+.rail {
+  position: fixed;
+  /* Default length. main.js shortens this near the end of the page so the
+     rail stops level with the last content element. */
+  top: 18vh;
+  height: 68vh;
+  /* Half the leftover space outside the content column, minus a little, so
+     the rail tracks the text block instead of the window edge. */
+  left: max(16px, calc((100vw - var(--wrap)) / 2 - 30px));
+  width: 1px;
+  background: var(--line);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.rail__fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 0;
+  background: var(--accent);
+}
+
+.rail__dot {
+  position: absolute;
+  top: 0;
+  left: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+@media (max-width: 1280px) {
+  .rail {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail {
+    display: none;
+  }
+}
+
 /* --- footer -------------------------------------------------------------- */
 
 .footer {

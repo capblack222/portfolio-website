@@ -105,6 +105,13 @@
       </div>
     </header>
 
+    <!-- Scroll progress. Purely decorative, so it is hidden from assistive
+         technology; main.js fills it and CSS removes it on narrow screens. -->
+    <div class="rail" aria-hidden="true">
+      <div class="rail__fill" id="rail-fill"></div>
+      <div class="rail__dot" id="rail-dot"></div>
+    </div>
+
     <main id="main">
       <div class="wrap">
         <!-- ===== hero ===== -->

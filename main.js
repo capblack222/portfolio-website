@@ -113,7 +113,102 @@
     });
   }
 
-  /* --- 2. contact form ---------------------------------------------------
+  /* --- 2. scroll progress rail -------------------------------------------
+     Fills the hairline in the left gutter as you move down the page.
+
+     Scroll fires far more often than the screen refreshes, so the handler
+     only flags that something changed and requestAnimationFrame does the
+     actual style write — one write per frame instead of one per event.
+
+     CSS already hides the rail under prefers-reduced-motion, but we also
+     skip wiring the listener at all in that case: no point running on every
+     scroll to update something nobody can see.
+  */
+
+  /* The rail ends level with the last piece of content — the submit button in
+     the contact form — not at the footer, which left it running on through
+     the empty space below the form.
+
+     Anchored to the button rather than to the section, because an empty
+     .form__status paragraph sits below the button and still occupies a line
+     box: the section's own bottom edge is ~50px lower than the last thing you
+     can actually see. */
+  var RAIL_END_GAP = 60;
+  var RAIL_END_ANCHORS = [
+    "#contact button[type='submit']",
+    "#contact .section__body",
+    ".footer",
+  ];
+
+  function railEndAnchor() {
+    for (var i = 0; i < RAIL_END_ANCHORS.length; i++) {
+      var el = document.querySelector(RAIL_END_ANCHORS[i]);
+      if (el) return el;
+    }
+    return null;
+  }
+
+  var railFill = document.getElementById("rail-fill");
+  var railDot = document.getElementById("rail-dot");
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  if (railFill && railDot && !reduceMotion.matches) {
+    var queued = false;
+
+    function paintRail() {
+      queued = false;
+
+      var rail = railFill.parentNode;
+
+      // The rail is fixed to the viewport, so near the bottom of the page its
+      // lower end would hang below where the content stops. Shorten it to end
+      // level with the last content element instead.
+      var anchor = railEndAnchor();
+
+      rail.style.height = "";
+      var railTop = rail.getBoundingClientRect().top;
+      var full = rail.clientHeight;
+
+      if (anchor) {
+        var allowed = anchor.getBoundingClientRect().bottom - railTop - RAIL_END_GAP;
+        if (allowed < full) rail.style.height = Math.max(0, allowed) + "px";
+      }
+
+      var track = rail.clientHeight;
+      // clientHeight is 0 while the rail is display:none (narrow screens).
+      if (!track) return;
+
+      // Progress is measured against the end of the *content*, not the end of
+      // the document. The footer is chrome, so counting it would mean the rail
+      // never fills until you had scrolled past everything worth reading.
+      //
+      // Target: the moment the bottom of the viewport meets the top of the
+      // footer. That happens at scrollY === footerTop - innerHeight.
+      var footer = document.querySelector(".footer");
+      var end = footer
+        ? footer.getBoundingClientRect().top + window.scrollY - window.innerHeight
+        : document.body.scrollHeight - window.innerHeight;
+
+      var progress =
+        end > 0 ? Math.min(1, Math.max(0, window.scrollY / end)) : 1;
+
+      var filled = progress * track;
+      railFill.style.height = filled + "px";
+      railDot.style.top = filled + "px";
+    }
+
+    function requestRail() {
+      if (queued) return;
+      queued = true;
+      window.requestAnimationFrame(paintRail);
+    }
+
+    window.addEventListener("scroll", requestRail, { passive: true });
+    window.addEventListener("resize", requestRail);
+    paintRail();
+  }
+
+  /* --- 3. contact form ---------------------------------------------------
      Posts JSON to the API Gateway endpoint in front of the SES Lambda.
      See infra/README.md for how that is deployed.
 
