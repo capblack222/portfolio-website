@@ -42,7 +42,8 @@ jobs:
         run: |
           mkdir -p dist
           cp index.html styles.css main.js dist/
-          if [ -d assets ]; then cp -r assets dist/; fi
+          if [ -d assets ];   then cp -r assets dist/;   fi
+          if [ -d projects ]; then cp -r projects dist/; fi
           echo "Publishing:"
           find dist -type f | sort
 
@@ -55,16 +56,22 @@ jobs:
       #
       # Only index.html is rewritten, and index.html is never cached, so the
       # new references are always picked up immediately.
+      # Every HTML page is stamped, not just index.html — project pages under
+      # projects/ reference the same CSS and JS one directory up, so they need
+      # the same treatment or they would serve a visitor the cached old file.
       - name: Stamp asset versions
         run: |
           VERSION="${GITHUB_SHA::7}"
-          sed -i \
-            -e "s|href=\"styles.css\"|href=\"styles.css?v=${VERSION}\"|g" \
-            -e "s|src=\"main.js\"|src=\"main.js?v=${VERSION}\"|g" \
-            -e "s|href=\"assets/Nishtha_Gupta_Resume.pdf\"|href=\"assets/Nishtha_Gupta_Resume.pdf?v=${VERSION}\"|g" \
-            dist/index.html
-          echo "Stamped version ${VERSION}:"
-          grep -o '[A-Za-z0-9_./]*?v=[0-9a-f]*' dist/index.html
+          for f in $(find dist -name '*.html'); do
+            sed -i \
+              -e "s|href=\"styles.css\"|href=\"styles.css?v=${VERSION}\"|g" \
+              -e "s|href=\"../styles.css\"|href=\"../styles.css?v=${VERSION}\"|g" \
+              -e "s|src=\"main.js\"|src=\"main.js?v=${VERSION}\"|g" \
+              -e "s|src=\"../main.js\"|src=\"../main.js?v=${VERSION}\"|g" \
+              -e "s|href=\"assets/Nishtha_Gupta_Resume.pdf\"|href=\"assets/Nishtha_Gupta_Resume.pdf?v=${VERSION}\"|g" \
+              "$f"
+            echo "  ${f}: $(grep -o '[A-Za-z0-9_./]*?v=[0-9a-f]*' "$f" | tr '\n' ' ')"
+          done
 
       # Pre-deploy gates. Every check runs and reports, then the step exits
       # non-zero if any failed — so a red build names every problem at once
@@ -96,11 +103,30 @@ jobs:
           # --- version stamps ----------------------------------------------
           # A silent sed failure here would pin every visitor to a cached copy
           # for a year, so this is the highest-consequence check in the file.
-          for pattern in "styles.css?v=" "main.js?v=" "Nishtha_Gupta_Resume.pdf?v="; do
-            if grep -q "$pattern" dist/index.html; then
-              ok "version-stamped: $pattern"
+          # Checked on every page, because a project page that misses the stamp
+          # fails exactly as badly as the home page missing it.
+          for f in $(find dist -name '*.html'); do
+            for pattern in "styles.css?v=" "main.js?v="; do
+              if grep -q "$pattern" "$f"; then
+                ok "stamped $pattern in ${f#dist/}"
+              else
+                bad "NOT stamped $pattern in ${f#dist/}"
+              fi
+            done
+          done
+
+          if grep -q "Nishtha_Gupta_Resume.pdf?v=" dist/index.html; then
+            ok "stamped resume link in index.html"
+          else
+            bad "resume link NOT stamped in index.html"
+          fi
+
+          # --- every page has a heading -------------------------------------
+          for f in $(find dist -name '*.html'); do
+            if grep -q "<h1>" "$f"; then
+              ok "has an <h1>: ${f#dist/}"
             else
-              bad "NOT version-stamped: $pattern"
+              bad "no <h1>: ${f#dist/}"
             fi
           done
 
@@ -118,39 +144,62 @@ jobs:
           # --- every referenced local file exists ---------------------------
           # Catches a typo'd path, which otherwise ships as a 404 favicon or a
           # dead resume link under a green checkmark.
+          # Resolved relative to each page's own directory, so a project page
+          # linking ../styles.css is checked against the right location.
           if python3 - <<'PY'
-          import re, os, sys
-          html = open('dist/index.html').read()
-          html = re.sub(r'<!--.*?-->', '', html, flags=re.S)
-          refs = set()
-          for m in re.finditer(r'(?:href|src)="([^"]+)"', html):
-              url = m.group(1)
-              if url.startswith(('http', 'mailto:', '#', 'data:')):
-                  continue
-              refs.add(url.split('?')[0])
-          missing = [r for r in sorted(refs) if not os.path.exists(os.path.join('dist', r))]
-          if missing:
-              print('      missing:', ', '.join(missing))
+          import re, os, sys, glob
+          bad = []
+          for path in sorted(glob.glob('dist/**/*.html', recursive=True)):
+              html = re.sub(r'<!--.*?-->', '', open(path).read(), flags=re.S)
+              base = os.path.dirname(path)
+              for m in re.finditer(r'(?:href|src)="([^"]+)"', html):
+                  url = m.group(1)
+                  if url.startswith(('http', 'mailto:', '#', 'data:')):
+                      continue
+                  # Strip both the query string and the fragment: a link like
+                  # ../index.html#about points at a file plus a location in it.
+                  rel = url.split('?')[0].split('#')[0]
+                  if not rel:
+                      continue
+                  target = os.path.normpath(os.path.join(base, rel))
+                  if not os.path.exists(target):
+                      bad.append('%s -> %s' % (path[5:], url))
+          if bad:
+              for b in bad:
+                  print('      missing:', b)
               sys.exit(1)
           PY
-          then ok "all referenced local files exist"
+          then ok "all referenced local files exist, on every page"
           else bad "a referenced local file is missing"
           fi
 
           # --- in-page anchors resolve --------------------------------------
           # Sections get renamed during refactors; a nav link to a dead id
-          # fails silently, it just does not scroll.
+          # fails silently, it just does not scroll. Cross-page links of the
+          # form ../index.html#about are resolved against that page's ids.
           if python3 - <<'PY'
-          import re, sys
-          html = open('dist/index.html').read()
-          ids = set(re.findall(r'id="([^"]+)"', html))
-          dangling = sorted(a for a in set(re.findall(r'href="#([^"]+)"', html)) if a not in ids)
-          if dangling:
-              print('      dangling anchors:', ', '.join('#' + d for d in dangling))
+          import re, sys, os, glob
+          ids = {}
+          for path in glob.glob('dist/**/*.html', recursive=True):
+              ids[os.path.normpath(path)] = set(re.findall(r'id="([^"]+)"', open(path).read()))
+          problems = []
+          for path in sorted(ids):
+              html = open(path).read()
+              base = os.path.dirname(path)
+              for href in re.findall(r'href="([^"]*#[^"]+)"', html):
+                  page, _, frag = href.partition('#')
+                  target = os.path.normpath(os.path.join(base, page)) if page else os.path.normpath(path)
+                  if target not in ids:
+                      continue
+                  if frag not in ids[target]:
+                      problems.append('%s -> %s' % (path[5:], href))
+          if problems:
+              for p in problems:
+                  print('      dangling anchor:', p)
               sys.exit(1)
           PY
-          then ok "all in-page anchors resolve"
-          else bad "an in-page anchor points at an id that does not exist"
+          then ok "all in-page and cross-page anchors resolve"
+          else bad "an anchor points at an id that does not exist"
           fi
 
           # --- CSS brace balance --------------------------------------------
@@ -175,8 +224,8 @@ jobs:
           # The repo is public. infra/README.md keeps YOUR_ACCOUNT_ID as a
           # deliberate placeholder; this makes sure a real one never reaches a
           # file that ships.
-          if grep -nE "YOUR_ACCOUNT_ID|lorem ipsum|TODO|FIXME|localhost|127\.0\.0\.1|AKIA[0-9A-Z]{16}" \
-               dist/index.html dist/styles.css dist/main.js; then
+          if grep -rnE "YOUR_ACCOUNT_ID|lorem ipsum|TODO|FIXME|localhost|127\.0\.0\.1|AKIA[0-9A-Z]{16}" \
+               --include='*.html' --include='*.css' --include='*.js' dist/; then
             bad "placeholder or secret-shaped string found above"
           else
             ok "no placeholders or secret-shaped strings"
@@ -228,11 +277,20 @@ jobs:
       # 3. index.html is never cached. It is the file that points at every
       #    stamped URL, so it has to be fetched fresh or none of the above
       #    works.
-      - name: Upload index.html
+      - name: Upload HTML pages
         run: |
           aws s3 cp dist/index.html "s3://${S3_BUCKET}/index.html" \
             --cache-control "no-cache, must-revalidate" \
             --content-type "text/html; charset=utf-8"
+
+          # Project pages get the same policy: they point at stamped assets,
+          # so they must never be served from a stale cache.
+          if [ -d dist/projects ]; then
+            aws s3 sync dist/projects/ "s3://${S3_BUCKET}/projects/" \
+              --cache-control "no-cache, must-revalidate" \
+              --content-type "text/html; charset=utf-8" \
+              --delete
+          fi
 
       # Without this, CloudFront keeps serving the old files and the deploy
       # looks like it silently failed.
@@ -274,6 +332,11 @@ jobs:
           probe "stamped js"     "$BASE/main.js?v=${VERSION}"
           probe "resume PDF"     "$BASE/assets/Nishtha_Gupta_Resume.pdf"
           probe "og image"       "$BASE/assets/og-image.png"
+
+          # Every project page the home page links to must actually resolve.
+          for page in $(cd dist && find projects -name '*.html' 2>/dev/null); do
+            probe "project page: ${page}" "$BASE/${page}"
+          done
 
           # The deployed HTML should reference this commit's assets. If it
           # references an older stamp, index.html did not actually update.

@@ -1216,6 +1216,110 @@ a:hover {
   }
 }
 
+/* --- project cards (home page) -------------------------------------------
+   The scan layer. Each card is a title, one line, three numbers and a stack,
+   and nothing else — the depth lives on the project's own page. Reusing the
+   metric component from the hero one step quieter (19px, ink rather than
+   amber) so the hero stays the loudest thing on the page.
+   -------------------------------------------------------------------------- */
+
+.pgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+  margin-top: 1.4rem;
+}
+
+.pcard {
+  display: flex;
+  flex-direction: column;
+  padding: 1.3rem 1.4rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+}
+
+.pcard h3 {
+  font-size: 17px;
+}
+
+.pcard__pitch {
+  margin-top: 0.55rem;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--body);
+}
+
+.chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  gap: 10px;
+  margin-top: 1.1rem;
+}
+
+.chip {
+  padding: 0.65rem 0.75rem;
+  border-radius: 3px;
+  background: var(--raised);
+}
+
+.chip b {
+  display: block;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.chip span {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* A chip with no number yet. Visibly unfinished on purpose — better than a
+   card that looks complete while saying nothing. */
+.chip--todo b {
+  color: var(--muted);
+}
+
+/* Pushed to the bottom so the links line up across cards of unequal height. */
+.pcard__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+  margin-top: auto;
+  padding-top: 1.1rem;
+  font-size: 12.5px;
+}
+
+/* --- project pages -------------------------------------------------------- */
+
+.backlink {
+  display: inline-block;
+  margin-bottom: 1.2rem;
+  font-size: 12.5px;
+  color: var(--accent);
+}
+
+.pagehead h1 {
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  letter-spacing: -0.035em;
+}
+
+.prose-wide {
+  max-width: 70ch;
+}
+
+.prose-wide p {
+  margin-top: 0.9rem;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
 /* --- scroll progress rail ------------------------------------------------
    A hairline in the left gutter that fills as you scroll. It is deliberately
    outside the content column: a stroke crossing body copy competes with

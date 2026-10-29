@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Lottery Verification Platform — Nishtha Gupta</title>
+    <meta
+      name="description"
+      content="A lottery verification service on AWS: Redis cache-aside with a deliberate exclusion for winning tickets, SQS with a dead-letter queue, and 10 Terraform modules."
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://gupnish.dev/projects/lottery-verification-platform.html" />
+    <meta property="og:title" content="Lottery Verification Platform — Nishtha Gupta" />
+    <meta
+      property="og:description"
+      content="A lottery verification service on AWS: Redis cache-aside with a deliberate exclusion for winning tickets, SQS with a dead-letter queue, and 10 Terraform modules."
+    />
+    <!-- Absolute URLs: LinkedIn, Slack and iMessage fetch these from their own
+         servers, where a relative path has nothing to resolve against. -->
+    <meta property="og:image" content="https://gupnish.dev/assets/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Nishtha Gupta — Cloud and Backend Engineer. 20–50× faster p99 verification, 2h to 15min regression suite runtime, 100+ engineering hours recovered per sprint."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://gupnish.dev/assets/og-image.png" />
+
+    <script>
+      // Runs before first paint: applies the saved theme so the page never
+      // flashes light before switching to dark. Wrapped in try/catch because
+      // localStorage throws in some privacy modes.
+      (function () {
+        try {
+          var saved = localStorage.getItem("theme");
+          if (saved === "dark" || saved === "light") {
+            document.documentElement.setAttribute("data-theme", saved);
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <link rel="stylesheet" href="../styles.css" />
+
+    <!-- One SVG covers every size a browser asks for, at 317 bytes and with no
+         font dependency — the mark is a path, so it cannot render differently
+         on a machine that lacks the typeface. The PNG is only for iOS, which
+         does not accept SVG here and applies its own corner mask, so that file
+         is deliberately square-cornered and full-bleed. -->
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png" />
+  
+    <link rel="canonical" href="https://gupnish.dev/projects/lottery-verification-platform.html" />
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+      <div class="wrap">
+        <a class="nav__name" href="../index.html">Nishtha Gupta</a>
+        <nav class="nav__links" aria-label="Sections">
+          <a href="../index.html#about">about</a>
+          <a href="../index.html#projects">projects</a>
+          <a href="../index.html#experience">experience</a>
+          <a href="../index.html#skills">skills</a>
+          <a href="../index.html#contact">contact</a>
+        </nav>
+        <button
+          type="button"
+          class="theme-toggle"
+          id="theme-toggle"
+          aria-pressed="false"
+          aria-label="Dark mode"
+        >
+          <span id="theme-label">dark</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Scroll progress. Decorative, hidden from assistive technology. -->
+    <div class="rail" aria-hidden="true">
+      <div class="rail__fill" id="rail-fill"></div>
+      <div class="rail__dot" id="rail-dot"></div>
+    </div>
+
+    <main id="main">
+      <div class="wrap">
+        <section class="hero pagehead" style="padding-bottom: 1rem">
+          <a class="backlink" href="../index.html#projects">&larr; all projects</a>
+          <h1>Lottery Verification Platform</h1>
+          <p class="hero__meta">infrastructure and networking lead &middot; 2026</p>
+          <p class="hero__sub" style="margin-top: 1rem; max-width: 62ch">
+            A verification service where I owned the network and infrastructure
+            layer, then kept extending it after the team build ended.
+          </p>
+          <div class="hero__actions">
+            <a class="btn btn--primary" href="https://github.com/capblack222/lottery-verification-platform" target="_blank" rel="noreferrer">source &#8599;</a>
+          </div>
+          <ul class="metrics">
+            <li class="metric"><p class="metric__value">20&ndash;50&times;</p><p class="metric__label">faster p99 verification</p></li>
+            <li class="metric"><p class="metric__value">2&ndash;10ms</p><p class="metric__label">warm read, down from 80&ndash;150ms</p></li>
+            <li class="metric"><p class="metric__value">10</p><p class="metric__label">Terraform modules, up and down</p></li>
+          </ul>
+        </section>
+
+        <section class="section section--lead">
+          <p class="eyebrow">the problem</p>
+          <div class="section__body prose-wide">
+            <p>
+              An agent scans a ticket and needs an answer immediately: is this a
+              winner, and has it already been claimed. Two things make that
+              harder than a database lookup. The read is hot &mdash; the same
+              draw gets verified thousands of times &mdash; and the answer must
+              never be stale, because a cached winner shown twice is a paid
+              claim shown twice.
+            </p>
+            <p>
+              So the system wants aggressive caching everywhere except the one
+              case where caching is dangerous. Most of the design follows from
+              holding both of those at once.
+            </p>
+          </div>
+        </section>
+
+        <section class="section">
+          <p class="eyebrow">decisions</p>
+          <div class="section__body">
+            <ul class="bullets">
+              <li><span><span class="stat">Excluded WINNER outcomes from the cache.</span> Everything else reads through Redis; winners always read through to Postgres. A stale hit on a losing ticket costs nothing. A stale hit on a winner could show one agent a claim another has already paid.</span></li>
+              <li><span><span class="stat">Kept a shared RDS instance over database-per-service.</span> The textbook answer is to split. I did not, because the SQS payload already carries enough context for the claims service to operate without reading the verification tier &mdash; so the split would have bought isolation I was already getting, at the cost of a second database to run.</span></li>
+              <li><span><span class="stat">Put claim processing behind SQS with a dead-letter queue.</span> Three retries, then the message parks in the DLQ for 14 days. Verification stays available when the claims service does not, which is the failure mode that actually matters at a counter.</span></li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="section">
+          <p class="eyebrow">architecture</p>
+          <div class="section__body">
+            <figure class="diagram">
+              <svg viewBox="0 0 820 230" role="img" aria-label="An agent request reaches the verification service on ECS Fargate, which reads Redis and falls back to Postgres. Winner events publish to SQS, with a dead letter queue after three retries, feeding the claims consumer.">
+                <g><rect x="8" y="92" width="112" height="46" rx="3" class="node-box"/><text x="64" y="112" text-anchor="middle" class="node-label">Agent</text><text x="64" y="128" text-anchor="middle" class="node-sub">verify request</text></g>
+                <g><rect x="162" y="92" width="130" height="46" rx="3" class="node-box"/><text x="227" y="112" text-anchor="middle" class="node-label">Verification</text><text x="227" y="128" text-anchor="middle" class="node-sub">ECS Fargate</text></g>
+                <g><rect x="348" y="22" width="120" height="46" rx="3" class="node-box"/><text x="408" y="42" text-anchor="middle" class="node-label">Redis</text><text x="408" y="58" text-anchor="middle" class="node-sub">cache-aside</text></g>
+                <g><rect x="348" y="162" width="120" height="46" rx="3" class="node-box"/><text x="408" y="182" text-anchor="middle" class="node-label">Postgres</text><text x="408" y="198" text-anchor="middle" class="node-sub">shared RDS</text></g>
+                <g><rect x="530" y="92" width="118" height="46" rx="3" class="node-box"/><text x="589" y="112" text-anchor="middle" class="node-label">SQS</text><text x="589" y="128" text-anchor="middle" class="node-sub">DLQ after 3</text></g>
+                <g><rect x="692" y="92" width="118" height="46" rx="3" class="node-box"/><text x="751" y="112" text-anchor="middle" class="node-label">Claims</text><text x="751" y="128" text-anchor="middle" class="node-sub">consumer</text></g>
+                <path d="M120 115 H162" class="flow-line"/>
+                <path d="M292 106 C 318 106, 324 45, 348 45" class="flow-line"/>
+                <path d="M292 124 C 318 124, 324 185, 348 185" class="flow-line"/>
+                <path d="M468 115 H530" class="flow-line"/>
+                <path d="M648 115 H692" class="flow-line"/>
+                <text x="478" y="108" class="node-sub">winner events</text>
+              </svg>
+              <figcaption class="diagram__caption">
+                Reads go through Redis and fall back to Postgres &mdash; except
+                WINNER outcomes, which always read from Postgres. Winner events
+                publish to SQS, so claim processing can fail without taking
+                verification down with it.
+              </figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="section section--quiet">
+          <p class="eyebrow">how it was measured</p>
+          <div class="section__body">
+            <ul class="bullets bullets--quiet">
+              <li><span>Custom CloudWatch metrics &mdash; CacheHit, CacheMiss, VerificationLatency &mdash; emitted before and after the Redis layer, so the improvement is a measurement rather than an estimate.</span></li>
+              <li><span>A purpose-built benchmark script exercised both cold and warm request paths. Benchmarking only the warm path would have produced a much prettier and much less true number.</span></li>
+              <li><span>Multi-AZ VPC, ALB, ECS Fargate and port-scoped security groups, provisioned and destroyed through 10 Terraform modules &mdash; so every measurement started from an identical stack.</span></li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="section">
+          <p class="eyebrow">what I would change</p>
+          <div class="section__body prose-wide">
+            <p>
+              The cache key is per-ticket. For a draw with a small winning set,
+              a negative-result filter in front of Redis would cut the Postgres
+              fallback further &mdash; most verifications are losses, and those
+              are exactly the reads currently doing the least useful work.
+            </p>
+            <p>
+              I would also put the WINNER exclusion behind a feature flag rather
+              than a code path. It is the single rule most likely to need
+              changing under operational pressure, and right now changing it
+              means a deploy.
+            </p>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+<footer class="footer">
+      <div class="wrap">
+        <p>Nishtha Gupta — built with plain HTML, CSS, and JavaScript. 2026.</p>
+      </div>
+    </footer>
+
+    <script src="../main.js" defer></script>
+  </body>
+</html>

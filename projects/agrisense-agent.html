@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>AgriSense Agent — Nishtha Gupta</title>
+    <meta
+      name="description"
+      content="A retrieval-augmented farm advisory agent: Bedrock Titan embeddings into Chroma, concurrent retrieval and weather fetch behind FastAPI, and a fixed 30-pair evaluation set."
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://gupnish.dev/projects/agrisense-agent.html" />
+    <meta property="og:title" content="AgriSense Agent — Nishtha Gupta" />
+    <meta
+      property="og:description"
+      content="A retrieval-augmented farm advisory agent: Bedrock Titan embeddings into Chroma, concurrent retrieval and weather fetch behind FastAPI, and a fixed 30-pair evaluation set."
+    />
+    <!-- Absolute URLs: LinkedIn, Slack and iMessage fetch these from their own
+         servers, where a relative path has nothing to resolve against. -->
+    <meta property="og:image" content="https://gupnish.dev/assets/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Nishtha Gupta — Cloud and Backend Engineer. 20–50× faster p99 verification, 2h to 15min regression suite runtime, 100+ engineering hours recovered per sprint."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://gupnish.dev/assets/og-image.png" />
+
+    <script>
+      // Runs before first paint: applies the saved theme so the page never
+      // flashes light before switching to dark. Wrapped in try/catch because
+      // localStorage throws in some privacy modes.
+      (function () {
+        try {
+          var saved = localStorage.getItem("theme");
+          if (saved === "dark" || saved === "light") {
+            document.documentElement.setAttribute("data-theme", saved);
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <link rel="stylesheet" href="../styles.css" />
+
+    <!-- One SVG covers every size a browser asks for, at 317 bytes and with no
+         font dependency — the mark is a path, so it cannot render differently
+         on a machine that lacks the typeface. The PNG is only for iOS, which
+         does not accept SVG here and applies its own corner mask, so that file
+         is deliberately square-cornered and full-bleed. -->
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png" />
+  
+    <link rel="canonical" href="https://gupnish.dev/projects/agrisense-agent.html" />
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+      <div class="wrap">
+        <a class="nav__name" href="../index.html">Nishtha Gupta</a>
+        <nav class="nav__links" aria-label="Sections">
+          <a href="../index.html#about">about</a>
+          <a href="../index.html#projects">projects</a>
+          <a href="../index.html#experience">experience</a>
+          <a href="../index.html#skills">skills</a>
+          <a href="../index.html#contact">contact</a>
+        </nav>
+        <button
+          type="button"
+          class="theme-toggle"
+          id="theme-toggle"
+          aria-pressed="false"
+          aria-label="Dark mode"
+        >
+          <span id="theme-label">dark</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Scroll progress. Decorative, hidden from assistive technology. -->
+    <div class="rail" aria-hidden="true">
+      <div class="rail__fill" id="rail-fill"></div>
+      <div class="rail__dot" id="rail-dot"></div>
+    </div>
+
+    <main id="main">
+      <div class="wrap">
+        <section class="hero pagehead" style="padding-bottom: 1rem">
+          <a class="backlink" href="../index.html#projects">&larr; all projects</a>
+          <h1>AgriSense Agent</h1>
+          <p class="hero__meta">2025 &middot; capstone, Google &times; Kaggle AI Agents Intensive</p>
+          <p class="hero__sub" style="margin-top: 1rem; max-width: 62ch">
+            A retrieval-augmented advisory agent for smallholder farmers that
+            attributes every recommendation to the sources it was retrieved
+            from, rather than to model weights.
+          </p>
+          <div class="hero__actions">
+            <a class="btn btn--primary" href="https://github.com/capblack222/AgriSense-Agent" target="_blank" rel="noreferrer">source &#8599;</a>
+            <a class="btn" href="https://www.kaggle.com/code/capblack222/agrisense-agent" target="_blank" rel="noreferrer">Kaggle notebook &#8599;</a>
+          </div>
+          <ul class="metrics">
+            <li class="metric"><p class="metric__value">30</p><p class="metric__label">QA pairs in the fixed retrieval evaluation set</p></li>
+            <li class="metric"><p class="metric__value">top-5</p><p class="metric__label">chunks retrieved and injected per query</p></li>
+            <li class="metric"><p class="metric__value">1024</p><p class="metric__label">dimension Titan V2 embeddings over ~600-char chunks</p></li>
+          </ul>
+        </section>
+
+        <section class="section section--lead">
+          <p class="eyebrow">the problem</p>
+          <div class="section__body prose-wide">
+            <p>
+              A farmer asking whether to irrigate today needs an answer tied to
+              this crop, this growth stage and this week's weather. A language
+              model will answer that question fluently whether or not it knows
+              anything &mdash; and a confident wrong answer about fertiliser
+              timing can cost a season's yield.
+            </p>
+            <p>
+              So the interesting constraint was not generating advice. It was
+              making every piece of advice traceable to a source, and being
+              able to tell whether a change to retrieval made the answers
+              better or merely different.
+            </p>
+          </div>
+        </section>
+
+        <section class="section">
+          <p class="eyebrow">decisions</p>
+          <div class="section__body">
+            <ul class="bullets">
+              <li><span><span class="stat">Grounded every answer in retrieved agronomy text.</span> Irrigation thresholds, heat limits and pest names come from a local vector index at query time and are injected into the prompt, so the model is summarising retrieved evidence rather than recalling it.</span></li>
+              <li><span><span class="stat">Fixed a 30-pair evaluation set before tuning retrieval.</span> Without it, judging a retrieval change means reading a few answers and forming an impression. With it, two versions are comparable.</span></li>
+              <li><span><span class="stat">Ran the weather fetch and the retrieval concurrently.</span> They are independent, and doing them in sequence spent the sum of two latencies to gather context the model needs in one go.</span></li>
+              <li><span><span class="stat">Kept a deterministic rule engine behind the model.</span> Crop and stage-aware thresholds still produce an answer when the LLM is unavailable, so the failure mode is a plainer recommendation rather than no recommendation.</span></li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="section">
+          <p class="eyebrow">architecture</p>
+          <div class="section__body">
+            <figure class="diagram">
+              <svg viewBox="0 0 840 250" role="img" aria-label="A request reaches the FastAPI orchestrator, which concurrently fetches weather and retrieves top-5 chunks from a Chroma index embedded with Bedrock Titan. Both feed the model, and the result is persisted to MongoDB.">
+                <g><rect x="8" y="100" width="108" height="46" rx="3" class="node-box"/><text x="62" y="120" text-anchor="middle" class="node-label">Client</text><text x="62" y="136" text-anchor="middle" class="node-sub">crop, stage</text></g>
+                <g><rect x="156" y="100" width="130" height="46" rx="3" class="node-box"/><text x="221" y="120" text-anchor="middle" class="node-label">Orchestrator</text><text x="221" y="136" text-anchor="middle" class="node-sub">FastAPI, async</text></g>
+                <g><rect x="340" y="22" width="132" height="46" rx="3" class="node-box"/><text x="406" y="42" text-anchor="middle" class="node-label">Weather</text><text x="406" y="58" text-anchor="middle" class="node-sub">forecast API</text></g>
+                <g><rect x="340" y="178" width="132" height="46" rx="3" class="node-box"/><text x="406" y="198" text-anchor="middle" class="node-label">Retrieval</text><text x="406" y="214" text-anchor="middle" class="node-sub">Chroma, top-5</text></g>
+                <g><rect x="528" y="100" width="124" height="46" rx="3" class="node-box"/><text x="590" y="120" text-anchor="middle" class="node-label">Reasoning</text><text x="590" y="136" text-anchor="middle" class="node-sub">rules fallback</text></g>
+                <g><rect x="696" y="100" width="124" height="46" rx="3" class="node-box"/><text x="758" y="120" text-anchor="middle" class="node-label">MongoDB</text><text x="758" y="136" text-anchor="middle" class="node-sub">farm history</text></g>
+                <path d="M116 123 H156" class="flow-line"/>
+                <path d="M286 114 C 312 114, 318 45, 340 45" class="flow-line"/>
+                <path d="M286 132 C 312 132, 318 201, 340 201" class="flow-line"/>
+                <path d="M472 45 C 500 45, 506 114, 528 114" class="flow-line"/>
+                <path d="M472 201 C 500 201, 506 132, 528 132" class="flow-line"/>
+                <path d="M652 123 H696" class="flow-line"/>
+                <text x="300" y="86" class="node-sub">concurrent</text>
+              </svg>
+              <figcaption class="diagram__caption">
+                Weather and retrieval run concurrently and both feed the
+                reasoning step, so the request pays the longer of the two
+                latencies rather than their sum. Retrieval is traced separately
+                from generation, which is what makes a slow answer diagnosable:
+                it is clear whether the index or the model was responsible.
+              </figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="section section--quiet">
+          <p class="eyebrow">how it was built</p>
+          <div class="section__body">
+            <ul class="bullets bullets--quiet">
+              <li><span>Knowledge base chunked at roughly 600 characters with overlap, embedded with Bedrock Titan V2 into 1024-dimension vectors and stored in a Chroma index built once by an ingest script.</span></li>
+              <li><span>JWT authentication with bcrypt hashing, per-user and per-IP rate limiting, CORS locked to the frontend origin, and request validation at the schema layer.</span></li>
+              <li><span>Four test modules covering the rule engine, the weather client, the chunker and the retrieval evaluation harness.</span></li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="section">
+          <p class="eyebrow">what I would change</p>
+          <div class="section__body prose-wide">
+            <p>
+              The Chroma index lives on local disk, which is the thing that
+              stops this being genuinely deployable: it ties the service to one
+              machine and makes the retrieval tier non-replaceable. Moving it
+              behind a managed vector store is the next real change, and the
+              evaluation set exists precisely so I could tell whether that
+              migration made retrieval worse.
+            </p>
+            <p>
+              The evaluation set is also still small at 30 pairs, and I wrote
+              them myself &mdash; which means it measures consistency against my
+              own reading of the agronomy guides, not against an expert's.
+            </p>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+<footer class="footer">
+      <div class="wrap">
+        <p>Nishtha Gupta — built with plain HTML, CSS, and JavaScript. 2026.</p>
+      </div>
+    </footer>
+
+    <script src="../main.js" defer></script>
+  </body>
+</html>
