@@ -1057,6 +1057,165 @@ a:hover {
   font-size: 14px;
 }
 
+/* --- experience timeline -------------------------------------------------
+   A bar chart of work and study, then the same information as a grouped
+   list. Deliberately no JavaScript and nothing hidden: the bars carry their
+   own labels, so the chart is readable without interaction and there is no
+   affordance for a visitor to discover. The chart's only job is showing
+   that two spans overlapped — which a vertical list structurally cannot do.
+
+   Positions are percentages of a fixed window, 2019.5 to 2028.0, computed
+   when the markup is written rather than at runtime.
+   -------------------------------------------------------------------------- */
+
+.tl {
+  margin-top: 1.5rem;
+}
+
+.tl__lane {
+  margin: 0 0 1.35rem;
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+}
+
+.tl__row {
+  position: relative;
+  height: 26px;
+  margin-bottom: 2.1rem;
+}
+
+.tl__bar {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 0.55rem;
+  border-radius: 2px;
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.tl__bar--w {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.tl__bar--e {
+  background: var(--raised);
+  border: 1px solid var(--line-strong);
+  color: var(--body);
+}
+
+/* The six-week internship is too narrow to hold a label, so it is a plain
+   tick and the list below names it. */
+.tl__bar--tick {
+  padding: 0;
+  background: var(--accent);
+  opacity: 0.55;
+}
+
+.tl__out {
+  position: absolute;
+  top: -17px;
+  font-size: 11.5px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.tl__axis {
+  position: relative;
+  height: 20px;
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.tl__axis span {
+  position: absolute;
+  top: 5px;
+  transform: translateX(-50%);
+}
+
+.tl__group {
+  margin-top: 1.6rem;
+}
+
+.tl__group > p {
+  margin: 0 0 0.2rem;
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+}
+
+.tl__list {
+  border-top: 1px solid var(--line);
+}
+
+.tl__item {
+  display: grid;
+  grid-template-columns: 11.5rem 1fr;
+  gap: 1.2rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.tl__when {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.tl__what strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.tl__what p {
+  margin: 0.25rem 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Without this, a reader sees TIAA ending Nov 2025 and assumes a gap. */
+.now {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: 0.6rem;
+  font-size: 11px;
+  color: var(--green);
+  vertical-align: 1px;
+}
+
+.now::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+/* Below this width the bars are too short to label honestly, so the chart
+   drops away and the list carries the section on its own. */
+@media (max-width: 700px) {
+  .tl__row,
+  .tl__axis {
+    display: none;
+  }
+
+  .tl__group:first-child {
+    margin-top: 0;
+  }
+
+  .tl__item {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+}
+
 /* --- footer -------------------------------------------------------------- */
 
 .footer {
