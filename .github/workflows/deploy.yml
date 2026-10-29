@@ -46,12 +46,145 @@ jobs:
           echo "Publishing:"
           find dist -type f | sort
 
-      # Cheap guard: if the HTML is obviously broken, fail before it ships.
+      # Cache busting. CSS and JS are cached in the visitor's browser for a
+      # year, and no CloudFront invalidation can reach into a browser cache —
+      # so a changed file has to arrive as a *different URL*. Stamping the
+      # commit SHA into the query string does that: every deploy produces a
+      # URL no returning visitor has seen, while unchanged deploys of the same
+      # commit stay cacheable.
+      #
+      # Only index.html is rewritten, and index.html is never cached, so the
+      # new references are always picked up immediately.
+      - name: Stamp asset versions
+        run: |
+          VERSION="${GITHUB_SHA::7}"
+          sed -i \
+            -e "s|href=\"styles.css\"|href=\"styles.css?v=${VERSION}\"|g" \
+            -e "s|src=\"main.js\"|src=\"main.js?v=${VERSION}\"|g" \
+            -e "s|href=\"assets/Nishtha_Gupta_Resume.pdf\"|href=\"assets/Nishtha_Gupta_Resume.pdf?v=${VERSION}\"|g" \
+            dist/index.html
+          echo "Stamped version ${VERSION}:"
+          grep -o '[A-Za-z0-9_./]*?v=[0-9a-f]*' dist/index.html
+
+      # Pre-deploy gates. Every check runs and reports, then the step exits
+      # non-zero if any failed — so a red build names every problem at once
+      # rather than making you push a fix to discover the next one.
+      #
+      # Deliberately excluded: external link checking (fails when GitHub or
+      # LinkedIn rate-limit the runner, which breaks deploys for reasons
+      # unrelated to the change — and a gate that cries wolf trains you to
+      # ignore all gates), full HTML validation, and Lighthouse CI.
       - name: Sanity check
         run: |
-          test -s dist/index.html || { echo "index.html missing or empty"; exit 1; }
-          grep -q "<h1>Nishtha Gupta</h1>" dist/index.html || {
-            echo "index.html does not contain the expected heading"; exit 1; }
+          fail=0
+          ok()  { echo "  PASS  $1"; }
+          bad() { echo "  FAIL  $1"; fail=1; }
+
+          # --- content is actually there -----------------------------------
+          if [ -s dist/index.html ] && grep -q "<h1>Nishtha Gupta</h1>" dist/index.html; then
+            ok "index.html present, non-empty, heading intact"
+          else
+            bad "index.html missing, empty, or the heading changed"
+          fi
+
+          if [ -f dist/assets/Nishtha_Gupta_Resume.pdf ]; then
+            ok "resume PDF present in dist/"
+          else
+            bad "resume PDF missing from dist/"
+          fi
+
+          # --- version stamps ----------------------------------------------
+          # A silent sed failure here would pin every visitor to a cached copy
+          # for a year, so this is the highest-consequence check in the file.
+          for pattern in "styles.css?v=" "main.js?v=" "Nishtha_Gupta_Resume.pdf?v="; do
+            if grep -q "$pattern" dist/index.html; then
+              ok "version-stamped: $pattern"
+            else
+              bad "NOT version-stamped: $pattern"
+            fi
+          done
+
+          # --- JavaScript parses -------------------------------------------
+          # One syntax error disables the whole file: theme toggle, nav
+          # highlighting, scroll rail and the contact form all stop working,
+          # while the deploy still reports success.
+          if node --check dist/main.js 2>/dev/null; then
+            ok "main.js parses"
+          else
+            bad "main.js has a syntax error"
+            node --check dist/main.js || true
+          fi
+
+          # --- every referenced local file exists ---------------------------
+          # Catches a typo'd path, which otherwise ships as a 404 favicon or a
+          # dead resume link under a green checkmark.
+          if python3 - <<'PY'
+          import re, os, sys
+          html = open('dist/index.html').read()
+          html = re.sub(r'<!--.*?-->', '', html, flags=re.S)
+          refs = set()
+          for m in re.finditer(r'(?:href|src)="([^"]+)"', html):
+              url = m.group(1)
+              if url.startswith(('http', 'mailto:', '#', 'data:')):
+                  continue
+              refs.add(url.split('?')[0])
+          missing = [r for r in sorted(refs) if not os.path.exists(os.path.join('dist', r))]
+          if missing:
+              print('      missing:', ', '.join(missing))
+              sys.exit(1)
+          PY
+          then ok "all referenced local files exist"
+          else bad "a referenced local file is missing"
+          fi
+
+          # --- in-page anchors resolve --------------------------------------
+          # Sections get renamed during refactors; a nav link to a dead id
+          # fails silently, it just does not scroll.
+          if python3 - <<'PY'
+          import re, sys
+          html = open('dist/index.html').read()
+          ids = set(re.findall(r'id="([^"]+)"', html))
+          dangling = sorted(a for a in set(re.findall(r'href="#([^"]+)"', html)) if a not in ids)
+          if dangling:
+              print('      dangling anchors:', ', '.join('#' + d for d in dangling))
+              sys.exit(1)
+          PY
+          then ok "all in-page anchors resolve"
+          else bad "an in-page anchor points at an id that does not exist"
+          fi
+
+          # --- CSS brace balance --------------------------------------------
+          # Brace counting, not CSS parsing: it catches a stray or missing
+          # brace (which silently disables every rule after it) and nothing
+          # subtler than that.
+          if node -e "
+            const css = require('fs').readFileSync('dist/styles.css', 'utf8');
+            let depth = 0;
+            for (const ch of css) {
+              if (ch === '{') depth++;
+              if (ch === '}' && --depth < 0) process.exit(1);
+            }
+            process.exit(depth === 0 ? 0 : 1);
+          "; then
+            ok "styles.css braces balance"
+          else
+            bad "styles.css has unbalanced braces"
+          fi
+
+          # --- placeholders and secrets -------------------------------------
+          # The repo is public. infra/README.md keeps YOUR_ACCOUNT_ID as a
+          # deliberate placeholder; this makes sure a real one never reaches a
+          # file that ships.
+          if grep -nE "YOUR_ACCOUNT_ID|lorem ipsum|TODO|FIXME|localhost|127\.0\.0\.1|AKIA[0-9A-Z]{16}" \
+               dist/index.html dist/styles.css dist/main.js; then
+            bad "placeholder or secret-shaped string found above"
+          else
+            ok "no placeholders or secret-shaped strings"
+          fi
+
+          echo
+          [ "$fail" -eq 0 ] && echo "All checks passed." || echo "One or more checks failed."
+          exit $fail
 
       # The role's trust policy pins the immutable OIDC subject, including the
       # numeric GitHub owner and repo IDs:
@@ -65,16 +198,36 @@ jobs:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # Two passes, because these files want different cache behaviour.
-      # CSS and JS can sit in the CDN; index.html must not, or visitors keep
-      # seeing yesterday's page until the cache expires.
-      - name: Sync assets
+      # Three passes, because these files want three different cache policies.
+      #
+      # 1. styles.css and main.js are only ever reached through a stamped URL
+      #    in index.html, so a change always arrives as a URL the browser has
+      #    not seen. A year is safe, and "immutable" skips revalidation.
+      - name: Upload stamped assets
         run: |
-          aws s3 sync dist/ "s3://${S3_BUCKET}" \
-            --exclude "index.html" \
-            --cache-control "public, max-age=86400" \
+          for f in styles.css main.js; do
+            aws s3 cp "dist/$f" "s3://${S3_BUCKET}/$f" \
+              --cache-control "public, max-age=31536000, immutable"
+          done
+
+      # 2. assets/ is different: these files have stable, shareable URLs.
+      #    The resume link in the page is stamped, but you may also paste
+      #    gupnish.dev/assets/Nishtha_Gupta_Resume.pdf straight into an
+      #    application — and that bare URL carries no stamp, so it can only be
+      #    refreshed by the cache expiring. An hour keeps it close to live
+      #    while still sparing most repeat visitors a download.
+      #
+      #    The filenames deliberately do NOT carry a hash: renaming the PDF on
+      #    every deploy would break any link already sent to a recruiter.
+      - name: Upload unstamped assets
+        run: |
+          aws s3 sync dist/assets/ "s3://${S3_BUCKET}/assets/" \
+            --cache-control "public, max-age=3600" \
             --delete
 
+      # 3. index.html is never cached. It is the file that points at every
+      #    stamped URL, so it has to be fetched fresh or none of the above
+      #    works.
       - name: Upload index.html
         run: |
           aws s3 cp dist/index.html "s3://${S3_BUCKET}/index.html" \
@@ -88,6 +241,74 @@ jobs:
           aws cloudfront create-invalidation \
             --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
             --paths "/*"
+
+      # A canary, not a gate — it runs after the deploy, so it cannot prevent a
+      # bad one. What it catches is the case the pre-deploy checks structurally
+      # cannot: the build was fine and the live site still is not, because an
+      # upload silently failed or the stamped URL does not resolve at the edge.
+      #
+      # Retries because a CloudFront invalidation is asynchronous. Without the
+      # retry this is exactly the kind of flaky check worth refusing to add.
+      - name: Smoke test the live site
+        run: |
+          VERSION="${GITHUB_SHA::7}"
+          BASE="https://gupnish.dev"
+          fail=0
+
+          probe() {
+            label="$1"; url="$2"
+            for attempt in 1 2 3 4 5; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$url" || echo 000)
+              if [ "$code" = "200" ]; then
+                echo "  PASS  $label ($code)"
+                return 0
+              fi
+              sleep $((attempt * 5))
+            done
+            echo "  FAIL  $label (last status $code)  $url"
+            fail=1
+          }
+
+          probe "home page"      "$BASE/"
+          probe "stamped css"    "$BASE/styles.css?v=${VERSION}"
+          probe "stamped js"     "$BASE/main.js?v=${VERSION}"
+          probe "resume PDF"     "$BASE/assets/Nishtha_Gupta_Resume.pdf"
+          probe "og image"       "$BASE/assets/og-image.png"
+
+          # The deployed HTML should reference this commit's assets. If it
+          # references an older stamp, index.html did not actually update.
+          if curl -s --max-time 20 "$BASE/" | grep -q "main.js?v=${VERSION}"; then
+            echo "  PASS  live HTML references this commit's assets"
+          else
+            echo "  FAIL  live HTML does not reference main.js?v=${VERSION}"
+            fail=1
+          fi
+
+          # Measured 2026-10: this distribution does NOT include the query
+          # string in its cache key — /main.js, ?v=a and ?v=b all return the
+          # same cached object. The stamp therefore busts the *browser* cache
+          # (which was the actual bug) while the edge is cleared by the
+          # invalidation above.
+          #
+          # That makes the invalidation load-bearing. If it ever silently
+          # failed, a new stamped URL would serve old bytes and the browser
+          # would cache those wrong bytes for a year. So compare what the edge
+          # actually returns against what we just uploaded.
+          expected=$(sha256sum dist/main.js | cut -d' ' -f1)
+          for attempt in 1 2 3 4 5 6; do
+            actual=$(curl -s --max-time 20 "$BASE/main.js?v=${VERSION}" | sha256sum | cut -d' ' -f1)
+            [ "$actual" = "$expected" ] && break
+            sleep $((attempt * 5))
+          done
+          if [ "$actual" = "$expected" ]; then
+            echo "  PASS  edge is serving this commit's main.js"
+          else
+            echo "  FAIL  edge is serving different bytes — invalidation may not have propagated"
+            echo "        expected ${expected:0:12}  got ${actual:0:12}"
+            fail=1
+          fi
+
+          exit $fail
 
       - name: Summary
         run: |
