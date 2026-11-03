@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Surge — Nishtha Gupta</title>
+    <meta
+      name="description"
+      content="A message-driven pipeline on EKS that autoscales worker pods on SQS queue depth via KEDA, rather than on CPU."
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://gupnish.dev/projects/surge.html" />
+    <meta property="og:title" content="Surge — Nishtha Gupta" />
+    <meta
+      property="og:description"
+      content="A message-driven pipeline on EKS that autoscales worker pods on SQS queue depth via KEDA, rather than on CPU."
+    />
+    <!-- Absolute URLs: LinkedIn, Slack and iMessage fetch these from their own
+         servers, where a relative path has nothing to resolve against. -->
+    <meta property="og:image" content="https://gupnish.dev/assets/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Nishtha Gupta — Cloud and Backend Engineer. 20–50× faster p99 verification, 2h to 15min regression suite runtime, 100+ engineering hours recovered per sprint."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://gupnish.dev/assets/og-image.png" />
+
+    <script>
+      // Runs before first paint: applies the saved theme so the page never
+      // flashes light before switching to dark. Wrapped in try/catch because
+      // localStorage throws in some privacy modes.
+      (function () {
+        try {
+          var saved = localStorage.getItem("theme");
+          if (saved === "dark" || saved === "light") {
+            document.documentElement.setAttribute("data-theme", saved);
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <link rel="stylesheet" href="../styles.css" />
+
+    <!-- One SVG covers every size a browser asks for, at 317 bytes and with no
+         font dependency — the mark is a path, so it cannot render differently
+         on a machine that lacks the typeface. The PNG is only for iOS, which
+         does not accept SVG here and applies its own corner mask, so that file
+         is deliberately square-cornered and full-bleed. -->
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png" />
+  
+    <link rel="canonical" href="https://gupnish.dev/projects/surge.html" />
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+      <div class="wrap">
+        <a class="nav__name" href="../index.html">Nishtha Gupta</a>
+        <nav class="nav__links" aria-label="Sections">
+          <a href="../index.html#about">about</a>
+          <a href="../index.html#projects">projects</a>
+          <a href="../index.html#experience">experience</a>
+          <a href="../index.html#skills">skills</a>
+          <a href="../index.html#contact">contact</a>
+        </nav>
+        <button
+          type="button"
+          class="theme-toggle"
+          id="theme-toggle"
+          aria-pressed="false"
+          aria-label="Dark mode"
+        >
+          <span id="theme-label">dark</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Scroll progress. Decorative, hidden from assistive technology. -->
+    <div class="rail" aria-hidden="true">
+      <div class="rail__fill" id="rail-fill"></div>
+      <div class="rail__dot" id="rail-dot"></div>
+    </div>
+
+    <main id="main">
+      <div class="wrap">
+        <section class="hero pagehead" style="padding-bottom: 1rem">
+          <a class="backlink" href="../index.html#projects">&larr; all projects</a>
+          <h1>Surge</h1>
+          <p class="hero__meta">2026</p>
+          <p class="hero__sub" style="margin-top: 1rem; max-width: 62ch">A message-driven pipeline that autoscales Kubernetes worker pods against queue depth rather than CPU.</p>
+          <div class="hero__actions"></div>
+          <ul class="metrics"><li class="metric"><p class="metric__value">1 &rarr; 10</p><p class="metric__label">worker pods, driven by queue depth</p></li><li class="metric"><p class="metric__value">15s</p><p class="metric__label">KEDA polling interval</p></li><li class="metric"><p class="metric__value">100</p><p class="metric__label">message load test, scale-out and scale-in</p></li></ul>
+        </section>
+
+        <section class="section section--lead">
+          <p class="eyebrow">the problem</p>
+          <div class="section__body"><div class="prose-wide"><p>A worker pool sized for peak capacity is idle most of the time and expensive all of the time. Sized for the average, it falls behind the moment traffic spikes and never catches up.</p><p>The usual autoscaler answer is CPU, and for queue-driven work CPU is the wrong signal entirely. A worker blocked waiting on a message looks idle to the scheduler, so the pool scales <em>down</em> exactly when the backlog is growing. The thing that actually describes the load is the number of messages waiting.</p></div></div>
+        </section>
+
+        <section class="section">
+          <p class="eyebrow">decisions</p>
+          <div class="section__body"><ul class="bullets"><li><span><span class="stat">Scaled on queue depth, not CPU.</span> KEDA reads the SQS queue length and sets the replica count from it. The signal matches the work: ten thousand waiting messages means scale out, regardless of what the processor is doing.</span></li><li><span><span class="stat">Kept SQS between SNS and the workers.</span> SNS fans out, but it does not hold anything. A queue in between means a slow or restarting consumer causes a backlog rather than dropped messages.</span></li><li><span><span class="stat">Validated scale-in, not just scale-out.</span> Scaling up under load is the easy half and the half everyone demos. The 100-message test watched the pool return to one pod afterwards, because an autoscaler that never scales down is just an expensive fixed pool.</span></li><li><span><span class="stat">Scoped IAM inline policies to the queue.</span> The workers can read and delete from one queue and do nothing else.</span></li></ul></div>
+        </section>
+
+        <section class="section">
+          <p class="eyebrow">architecture</p>
+          <div class="section__body"><figure class="diagram"><svg viewBox="0 0 830 180" role="img" aria-label="A publisher sends to SNS, which fans out to an SQS queue. KEDA reads the queue depth every 15 seconds and scales EKS worker pods between 1 and 10."><g><rect x="8" y="66" width="120" height="46" rx="3" class="node-box"/><text x="68" y="86" text-anchor="middle" class="node-label">Publisher</text><text x="68" y="102" text-anchor="middle" class="node-sub">events</text></g><g><rect x="172" y="66" width="120" height="46" rx="3" class="node-box"/><text x="232" y="86" text-anchor="middle" class="node-label">SNS</text><text x="232" y="102" text-anchor="middle" class="node-sub">fan-out</text></g><g><rect x="336" y="66" width="120" height="46" rx="3" class="node-box"/><text x="396" y="86" text-anchor="middle" class="node-label">SQS</text><text x="396" y="102" text-anchor="middle" class="node-sub">buffer, depth</text></g><g><rect x="500" y="66" width="130" height="46" rx="3" class="node-box"/><text x="565" y="86" text-anchor="middle" class="node-label">KEDA</text><text x="565" y="102" text-anchor="middle" class="node-sub">polls every 15s</text></g><g><rect x="674" y="66" width="148" height="46" rx="3" class="node-box"/><text x="748" y="86" text-anchor="middle" class="node-label">EKS workers</text><text x="748" y="102" text-anchor="middle" class="node-sub">1 &rarr; 10 pods</text></g><path d="M128 89 H172" class="flow-line"/><path d="M292 89 H336" class="flow-line"/><path d="M456 89 H500" class="flow-line"/><path d="M630 89 H674" class="flow-line"/><text x="548" y="140" text-anchor="middle" class="node-sub">queue depth drives replica count</text></svg><figcaption class="diagram__caption">SNS fans out, SQS absorbs and holds, KEDA translates queue depth into a replica count every 15 seconds, and the EKS worker pool follows it between 1 and 10 pods. Cluster provisioned with eksctl, KEDA installed through Helm.</figcaption></figure></div>
+        </section>
+
+        <section class="section">
+          <p class="eyebrow">what I would change</p>
+          <div class="section__body"><div class="prose-wide"><p>There is no dead-letter queue. A message that fails repeatedly currently cycles rather than being parked for inspection, and that is the first thing I would add before putting this anywhere real.</p><p>The 15-second polling interval was not derived from anything &mdash; it is a reasonable default. Tuning it is a trade between how fast the pool reacts and how often KEDA calls the SQS API, and I would want a cost figure on both sides before choosing a number deliberately.</p></div></div>
+        </section>
+
+      </div>
+    </main>
+
+<footer class="footer">
+      <div class="wrap">
+        <p>Nishtha Gupta — built with plain HTML, CSS, and JavaScript. 2026.</p>
+      </div>
+    </footer>
+
+    <script src="../main.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Driver Drowsiness Detection — Nishtha Gupta</title>
+    <meta
+      name="description"
+      content="Real-time driver fatigue detection on a Raspberry Pi using OpenCV and Dlib, published at Hinweis ASIT 2023."
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://gupnish.dev/projects/driver-drowsiness-detection.html" />
+    <meta property="og:title" content="Driver Drowsiness Detection — Nishtha Gupta" />
+    <meta
+      property="og:description"
+      content="Real-time driver fatigue detection on a Raspberry Pi using OpenCV and Dlib, published at Hinweis ASIT 2023."
+    />
+    <!-- Absolute URLs: LinkedIn, Slack and iMessage fetch these from their own
+         servers, where a relative path has nothing to resolve against. -->
+    <meta property="og:image" content="https://gupnish.dev/assets/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Nishtha Gupta — Cloud and Backend Engineer. 20–50× faster p99 verification, 2h to 15min regression suite runtime, 100+ engineering hours recovered per sprint."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://gupnish.dev/assets/og-image.png" />
+
+    <script>
+      // Runs before first paint: applies the saved theme so the page never
+      // flashes light before switching to dark. Wrapped in try/catch because
+      // localStorage throws in some privacy modes.
+      (function () {
+        try {
+          var saved = localStorage.getItem("theme");
+          if (saved === "dark" || saved === "light") {
+            document.documentElement.setAttribute("data-theme", saved);
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <link rel="stylesheet" href="../styles.css" />
+
+    <!-- One SVG covers every size a browser asks for, at 317 bytes and with no
+         font dependency — the mark is a path, so it cannot render differently
+         on a machine that lacks the typeface. The PNG is only for iOS, which
+         does not accept SVG here and applies its own corner mask, so that file
+         is deliberately square-cornered and full-bleed. -->
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png" />
+  
+    <link rel="canonical" href="https://gupnish.dev/projects/driver-drowsiness-detection.html" />
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+      <div class="wrap">
+        <a class="nav__name" href="../index.html">Nishtha Gupta</a>
+        <nav class="nav__links" aria-label="Sections">
+          <a href="../index.html#about">about</a>
+          <a href="../index.html#projects">projects</a>
+          <a href="../index.html#experience">experience</a>
+          <a href="../index.html#skills">skills</a>
+          <a href="../index.html#contact">contact</a>
+        </nav>
+        <button
+          type="button"
+          class="theme-toggle"
+          id="theme-toggle"
+          aria-pressed="false"
+          aria-label="Dark mode"
+        >
+          <span id="theme-label">dark</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Scroll progress. Decorative, hidden from assistive technology. -->
+    <div class="rail" aria-hidden="true">
+      <div class="rail__fill" id="rail-fill"></div>
+      <div class="rail__dot" id="rail-dot"></div>
+    </div>
+
+    <main id="main">
+      <div class="wrap">
+        <section class="hero pagehead" style="padding-bottom: 1rem">
+          <a class="backlink" href="../index.html#projects">&larr; all projects</a>
+          <h1>Driver Drowsiness Detection and Alert System</h1>
+          <p class="hero__meta">published &middot; 2023</p>
+          <p class="hero__sub" style="margin-top: 1rem; max-width: 62ch">Real-time driver-fatigue detection on a Raspberry Pi, using a camera and no specialised in-vehicle hardware.</p>
+          <div class="hero__actions"></div>
+          <ul class="metrics"><li class="metric"><p class="metric__value">Hinweis ASIT 2023</p><p class="metric__label">published and presented</p></li><li class="metric"><p class="metric__value">Raspberry Pi</p><p class="metric__label">commodity hardware, in-vehicle</p></li><li class="metric"><p class="metric__value">Real time</p><p class="metric__label">eye-state analysis per frame</p></li></ul>
+        </section>
+
+        <section class="section section--lead">
+          <p class="eyebrow">the problem</p>
+          <div class="section__body"><div class="prose-wide"><p>Fatigue detection systems that ship in cars rely on instrumentation most vehicles do not have &mdash; steering-angle sensors, lane-departure cameras, driver-facing infrared. The population that would benefit most from a drowsiness alert is the one driving older vehicles without any of it.</p><p>The constraint was therefore the hardware, not the algorithm: whatever the detection did, it had to run in real time on a Raspberry Pi with an ordinary camera, inside a moving vehicle.</p></div></div>
+        </section>
+
+        <section class="section">
+          <p class="eyebrow">approach</p>
+          <div class="section__body"><ul class="bullets bullets--quiet"><li><span><span class="stat">Built detection around eye-state analysis.</span> Facial landmark tracking with OpenCV and Dlib, with sustained eye closure over consecutive frames as the fatigue signal rather than any single frame.</span></li><li><span><span class="stat">Targeted commodity hardware from the start.</span> Designing for the Pi constrained every later choice, which is the opposite of building something accurate and discovering afterwards that it needs a GPU.</span></li><li><span><span class="stat">Published the findings.</span> Presented at Hinweis ASIT 2023, the Second International Conference on Advances in Software Engineering and Information Technology.</span></li></ul></div>
+        </section>
+
+        <section class="section">
+          <p class="eyebrow">what I would change</p>
+          <div class="section__body"><div class="prose-wide"><p>Landmark tracking degrades in exactly the conditions where drowsiness matters most: night driving, low light, and glasses. A system that works well in daylight and poorly at 3am is solving the easier half of the problem.</p><p>I would also want a false-positive measurement rather than a detection-rate one. An alert system that cries wolf gets switched off, and then its detection rate is zero.</p></div></div>
+        </section>
+
+      </div>
+    </main>
+
+<footer class="footer">
+      <div class="wrap">
+        <p>Nishtha Gupta — built with plain HTML, CSS, and JavaScript. 2026.</p>
+      </div>
+    </footer>
+
+    <script src="../main.js" defer></script>
+  </body>
+</html>

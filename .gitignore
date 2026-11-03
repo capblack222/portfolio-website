@@ -45,3 +45,6 @@ next-env.d.ts
 alias.json
 trust-policy.json
 deploy-policy.json
+
+# Claude Code working notes (local only)
+CLAUDE.md

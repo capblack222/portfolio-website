@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>AWS 3-Tier Infrastructure Platform — Nishtha Gupta</title>
+    <meta
+      name="description"
+      content="A three-tier AWS architecture as modular Terraform: five modules, three environments from one codebase, database isolated in private subnets."
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://gupnish.dev/projects/aws-3-tier-infrastructure.html" />
+    <meta property="og:title" content="AWS 3-Tier Infrastructure Platform — Nishtha Gupta" />
+    <meta
+      property="og:description"
+      content="A three-tier AWS architecture as modular Terraform: five modules, three environments from one codebase, database isolated in private subnets."
+    />
+    <!-- Absolute URLs: LinkedIn, Slack and iMessage fetch these from their own
+         servers, where a relative path has nothing to resolve against. -->
+    <meta property="og:image" content="https://gupnish.dev/assets/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Nishtha Gupta — Cloud and Backend Engineer. 20–50× faster p99 verification, 2h to 15min regression suite runtime, 100+ engineering hours recovered per sprint."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://gupnish.dev/assets/og-image.png" />
+
+    <script>
+      // Runs before first paint: applies the saved theme so the page never
+      // flashes light before switching to dark. Wrapped in try/catch because
+      // localStorage throws in some privacy modes.
+      (function () {
+        try {
+          var saved = localStorage.getItem("theme");
+          if (saved === "dark" || saved === "light") {
+            document.documentElement.setAttribute("data-theme", saved);
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <link rel="stylesheet" href="../styles.css" />
+
+    <!-- One SVG covers every size a browser asks for, at 317 bytes and with no
+         font dependency — the mark is a path, so it cannot render differently
+         on a machine that lacks the typeface. The PNG is only for iOS, which
+         does not accept SVG here and applies its own corner mask, so that file
+         is deliberately square-cornered and full-bleed. -->
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png" />
+  
+    <link rel="canonical" href="https://gupnish.dev/projects/aws-3-tier-infrastructure.html" />
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+      <div class="wrap">
+        <a class="nav__name" href="../index.html">Nishtha Gupta</a>
+        <nav class="nav__links" aria-label="Sections">
+          <a href="../index.html#about">about</a>
+          <a href="../index.html#projects">projects</a>
+          <a href="../index.html#experience">experience</a>
+          <a href="../index.html#skills">skills</a>
+          <a href="../index.html#contact">contact</a>
+        </nav>
+        <button
+          type="button"
+          class="theme-toggle"
+          id="theme-toggle"
+          aria-pressed="false"
+          aria-label="Dark mode"
+        >
+          <span id="theme-label">dark</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Scroll progress. Decorative, hidden from assistive technology. -->
+    <div class="rail" aria-hidden="true">
+      <div class="rail__fill" id="rail-fill"></div>
+      <div class="rail__dot" id="rail-dot"></div>
+    </div>
+
+    <main id="main">
+      <div class="wrap">
+        <section class="hero pagehead" style="padding-bottom: 1rem">
+          <a class="backlink" href="../index.html#projects">&larr; all projects</a>
+          <h1>AWS 3-Tier Infrastructure Platform</h1>
+          <p class="hero__meta">2026</p>
+          <p class="hero__sub" style="margin-top: 1rem; max-width: 62ch">A three-tier AWS architecture defined entirely as code, with one module set serving three environments.</p>
+          <div class="hero__actions"></div>
+          <ul class="metrics"><li class="metric"><p class="metric__value">5</p><p class="metric__label">Terraform modules</p></li><li class="metric"><p class="metric__value">3</p><p class="metric__label">environments from one codebase</p></li><li class="metric"><p class="metric__value">0</p><p class="metric__label">database subnets reachable from the internet</p></li></ul>
+        </section>
+
+        <section class="section section--lead">
+          <p class="eyebrow">the problem</p>
+          <div class="section__body"><div class="prose-wide"><p>The fastest way to get dev, staging and production stood up is to copy the configuration three times. It is also the fastest way to get three environments that have quietly diverged, so that a change tested in staging behaves differently in production for reasons nobody can reconstruct.</p><p>The goal was one definition, three instantiations, and no copy-paste between them.</p></div></div>
+        </section>
+
+        <section class="section">
+          <p class="eyebrow">decisions</p>
+          <div class="section__body"><ul class="bullets"><li><span><span class="stat">Split modules by lifecycle, not by service.</span> Networking, security, compute, storage and monitoring change at different rates and for different reasons. Grouping by what changes together keeps a routine compute change from touching the VPC.</span></li><li><span><span class="stat">Used conditional resource counts instead of per-environment copies.</span> One codebase parameterised by environment, so dev can run a smaller instance count without being a different configuration. Drift between environments becomes impossible rather than merely discouraged.</span></li><li><span><span class="stat">Put the database in private subnets behind a NAT gateway.</span> The data tier has no inbound route from the internet at all. Outbound access for patching goes through NAT, so the isolation is structural rather than a security-group rule somebody could widen.</span></li></ul></div>
+        </section>
+
+        <section class="section">
+          <p class="eyebrow">architecture</p>
+          <div class="section__body"><figure class="diagram"><svg viewBox="0 0 820 230" role="img" aria-label="Traffic reaches an application load balancer in public subnets, then an auto scaling group of web servers, then an RDS database isolated in private subnets behind a NAT gateway."><rect x="4" y="8" width="812" height="92" rx="4" class="zone-box"/><text x="16" y="26" class="node-sub">public subnets</text><rect x="4" y="118" width="812" height="100" rx="4" class="zone-box"/><text x="16" y="136" class="node-sub">private subnets</text><g><rect x="40" y="40" width="130" height="46" rx="3" class="node-box"/><text x="105" y="60" text-anchor="middle" class="node-label">ALB</text><text x="105" y="76" text-anchor="middle" class="node-sub">entry point</text></g><g><rect x="240" y="40" width="150" height="46" rx="3" class="node-box"/><text x="315" y="60" text-anchor="middle" class="node-label">ASG</text><text x="315" y="76" text-anchor="middle" class="node-sub">web tier</text></g><g><rect x="470" y="40" width="140" height="46" rx="3" class="node-box"/><text x="540" y="60" text-anchor="middle" class="node-label">NAT Gateway</text><text x="540" y="76" text-anchor="middle" class="node-sub">egress only</text></g><g><rect x="240" y="150" width="150" height="46" rx="3" class="node-box"/><text x="315" y="170" text-anchor="middle" class="node-label">RDS</text><text x="315" y="186" text-anchor="middle" class="node-sub">system of record</text></g><path d="M170 63 H240" class="flow-line"/><path d="M315 86 V150" class="flow-line"/><path d="M390 175 C 470 175, 540 120, 540 86" class="flow-line"/></svg><figcaption class="diagram__caption">Public subnets hold only what has to be reachable: the load balancer and the NAT gateway. The web tier scales within the group behind the ALB. The database sits in private subnets with no inbound path from outside the VPC &mdash; egress for updates goes out through NAT and nothing comes back in.</figcaption></figure></div>
+        </section>
+
+        <section class="section">
+          <p class="eyebrow">what I would change</p>
+          <div class="section__body"><div class="prose-wide"><p>State management is the gap. For this to be safe with more than one person applying it, the backend needs remote state with locking &mdash; otherwise two concurrent applies can interleave and leave the recorded state describing infrastructure that does not exist.</p><p>I would also add a plan-only CI step on pull requests. Reviewing a Terraform diff as code is much harder than reviewing the plan it produces.</p></div></div>
+        </section>
+
+      </div>
+    </main>
+
+<footer class="footer">
+      <div class="wrap">
+        <p>Nishtha Gupta — built with plain HTML, CSS, and JavaScript. 2026.</p>
+      </div>
+    </footer>
+
+    <script src="../main.js" defer></script>
+  </body>
+</html>
