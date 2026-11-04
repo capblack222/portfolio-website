@@ -1136,8 +1136,8 @@ a:hover {
 }
 
 .tl__bar--e {
-  background: var(--green);
-  color: var(--accent-ink);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  color: var(--accent);
 }
 
 /* The six-week internship is too narrow to hold a label, so it is a plain
