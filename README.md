@@ -17,19 +17,17 @@ python3 -m http.server 8000
 ```
 index.html       all content and markup
 styles.css       light theme + print stylesheet
-main.js          ~80 lines: active nav link, contact form submit
+main.js          theme toggle, active nav link, scroll progress rail, contact form submit
 infra/
   lambda/contact.mjs   SES handler for the contact form
   README.md            full AWS deployment runbook
 docs/                  design doc from the earlier build
-legacy-nextjs/         the previous Next.js version, kept for reference
+.github/workflows/deploy.yml   build checks, S3 upload, CloudFront invalidation, smoke test
 ```
 
 ## Editing content
 
 Edit `index.html` directly. Content lives in the markup, not in a data file — for a site this size that's fewer moving parts, and it means search engines and no-JS visitors see everything.
-
-**One `TODO` is outstanding:** the Graduate Assistant entry under experience has no bullet, because that role isn't on the master CV and nothing was inferred. Search `TODO` in `index.html`.
 
 ## Design notes
 
@@ -58,13 +56,13 @@ All clear WCAG AA in both modes. `--muted` is the one to re-check if you touch i
 
 **Print** is minimal now — it forces light, hides the nav and form, and gets out of the way. The previous version tried to reformat the page into a one-page resume; that was the wrong tool, because a resume needs editorial selection that a stylesheet over a portfolio can't do well.
 
-The real resume is the compiled LaTeX PDF. **Drop it at `assets/resume.pdf`** and the download link in the contact section starts working.
+The real resume is the compiled LaTeX PDF at `assets/Nishtha_Gupta_Resume.pdf`, linked from the contact section. Replace that file to update it; the name stays fixed so links already sent out keep working.
 
 ## Contact form
 
 `main.js` posts to an API Gateway endpoint in front of a Lambda that calls SES.
 
-Until you paste the endpoint into `ENDPOINT` in `main.js`, the form tells visitors to use the email link instead. Deliberate — a form that looks like it sent but didn't is worse than no form.
+The endpoint is set in `ENDPOINT` in `main.js`. If it is ever emptied, or a send fails, the form tells visitors to use the email link instead. Deliberate — a form that looks like it sent but didn't is worse than no form.
 
 Setup is in [`infra/README.md`](infra/README.md).
 
@@ -84,7 +82,3 @@ First-time setup is in [`infra/README.md`](infra/README.md) — bucket and Cloud
 - **Authentication is OIDC, not access keys.** GitHub mints a short-lived token scoped to this repo's `main` branch; no long-lived secret exists to leak. Ten extra minutes, and it's the version worth explaining in an interview.
 
 The workflow lives at `.github/workflows/deploy.yml`. It publishes a whitelist — `index.html`, `styles.css`, `main.js`, `assets/` — so nothing else in the repo can reach the bucket by accident.
-
-## The old version
-
-`legacy-nextjs/` holds the previous Next.js app — dark theme, pixel cursor trail, terminal boot sequence. Nothing was deleted; it also lives in git history. Delete the folder when you're sure you don't want it.
